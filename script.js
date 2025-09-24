@@ -3,13 +3,31 @@ let currentQuestionIndex = 0;
 let backgroundAudio = new Audio('audio/background.mp3');
 backgroundAudio.loop = true;
 
+// Segítségek számolása
+let helpCounters = {
+    half: 1,
+    hint: 1,
+    dbl: 1
+};
+
+// Játék állapot
+let gameStats = {
+    correct: 0,
+    total: 0,
+    answers: []
+};
+
+// Játék állapotjelzők
+let isDblModeActive = false;
+let selectedAnswers = [];
+let answerProcessing = false;
+
 // Beállítások kezelése
 document.getElementById('settings-toggle').addEventListener('click', function() {
     const content = document.getElementById('settings-content');
     content.classList.toggle('hidden');
 });
 
-// Hangerő beállítások
 document.getElementById('bg-volume').addEventListener('input', function(e) {
     backgroundAudio.volume = parseFloat(e.target.value);
 });
@@ -18,6 +36,49 @@ document.getElementById('fx-volume').addEventListener('input', function(e) {
     // Ez a hangerő a hatásokra vonatkozik
 });
 
+// Segítségek panel megjelenítése
+document.getElementById('help-toggle').addEventListener('click', () => {
+    document.getElementById('help-options').classList.toggle('hidden');
+});
+
+// Segítségek számlálók
+document.getElementById('inc-half').addEventListener('click', () => {
+    helpCounters.half++;
+    document.getElementById('count-half').textContent = helpCounters.half;
+});
+
+document.getElementById('dec-half').addEventListener('click', () => {
+    if (helpCounters.half > 0) {
+        helpCounters.half--;
+        document.getElementById('count-half').textContent = helpCounters.half;
+    }
+});
+
+document.getElementById('inc-hint').addEventListener('click', () => {
+    helpCounters.hint++;
+    document.getElementById('count-hint').textContent = helpCounters.hint;
+});
+
+document.getElementById('dec-hint').addEventListener('click', () => {
+    if (helpCounters.hint > 0) {
+        helpCounters.hint--;
+        document.getElementById('count-hint').textContent = helpCounters.hint;
+    }
+});
+
+document.getElementById('inc-dbl').addEventListener('click', () => {
+    helpCounters.dbl++;
+    document.getElementById('count-dbl').textContent = helpCounters.dbl;
+});
+
+document.getElementById('dec-dbl').addEventListener('click', () => {
+    if (helpCounters.dbl > 0) {
+        helpCounters.dbl--;
+        document.getElementById('count-dbl').textContent = helpCounters.dbl;
+    }
+});
+
+// Játék indítása
 document.getElementById('start-btn').addEventListener('click', () => {
     const fileInput = document.getElementById('json-upload');
     const file = fileInput.files[0];
@@ -30,10 +91,12 @@ document.getElementById('start-btn').addEventListener('click', () => {
     reader.onload = function(e) {
         try {
             quizData = JSON.parse(e.target.result);
-            // Teljesen elrejtjük a start screent
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('help-buttons').classList.remove('hidden');
             backgroundAudio.play();
+            currentQuestionIndex = 0;
+            gameStats = { correct: 0, total: 0, answers: [] };
             showQuestion();
         } catch (err) {
             alert('Hiba a JSON fájl feldolgozása során!');
@@ -43,8 +106,21 @@ document.getElementById('start-btn').addEventListener('click', () => {
 });
 
 function showQuestion() {
+    // Visszaállítjuk a blob színeket az eredetire
+    const paths = document.querySelectorAll('#background-svg path');
+    const originalColors = ['#3B0270', '#6F00FF', '#3E1E68', '#5D2F77'];
+    paths.forEach((p, i) => {
+        p.style.fill = originalColors[i];
+    });
+
+    document.getElementById('progress').textContent = `${currentQuestionIndex + 1}/${quizData.length}`;
+
     const question = quizData[currentQuestionIndex];
     document.getElementById('question-text').textContent = question.question;
+
+    // Hint és trivia elrejtése
+    document.getElementById('hint').classList.add('hidden');
+    document.getElementById('trivia').classList.add('hidden');
 
     const imgElement = document.getElementById('question-image');
     if (question.image) {
@@ -54,6 +130,9 @@ function showQuestion() {
         imgElement.classList.add('hidden');
     }
 
+    // Segítség gombok frissítése
+    updateHelpButtons();
+
     const answersContainer = document.getElementById('answers-container');
     answersContainer.innerHTML = '';
 
@@ -62,37 +141,79 @@ function showQuestion() {
     shuffleArray(answers);
 
     const letters = ['A', 'B', 'C', 'D'];
-    
+    const colors = ['red', 'blue', 'yellow', 'green'];
+
     answers.forEach((answer, index) => {
         const button = document.createElement('button');
-        button.classList.add('answer');
+        button.classList.add('answer', `answer-color-${colors[index]}`);
         button.innerHTML = `<span class="answer-label">${letters[index]}.</span> ${answer}`;
         button.dataset.correct = answer === correctAnswer;
         button.dataset.answer = answer;
+        button.dataset.letter = letters[index];
         button.addEventListener('click', () => handleAnswerClick(button));
         answersContainer.appendChild(button);
     });
 
     document.getElementById('next-btn').classList.add('hidden');
+    // Játékállapot visszaállítása minden kérdésnél
+    isDblModeActive = false;
+    selectedAnswers = [];
+    answerProcessing = false;
 }
 
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
+function updateHelpButtons() {
+    document.querySelector('#half-btn .help-counter').textContent = helpCounters.half;
+    document.querySelector('#hint-btn .help-counter').textContent = helpCounters.hint;
+    document.querySelector('#dbl-btn .help-counter').textContent = helpCounters.dbl;
+
+    document.getElementById('half-btn').classList.toggle('disabled', helpCounters.half <= 0);
+    document.getElementById('hint-btn').classList.toggle('disabled', helpCounters.hint <= 0);
+    document.getElementById('dbl-btn').classList.toggle('disabled', helpCounters.dbl <= 0 || isDblModeActive);
 }
 
 function handleAnswerClick(selectedButton) {
-    // Először kijelöljük a választ
-    document.querySelectorAll('.answer').forEach(btn => {
-        btn.classList.add('disabled');
-        if (btn === selectedButton) {
-            btn.classList.add('selected');
-        }
-    });
+    if (answerProcessing) return; // Ha már folyamatban van a válasz, ne csináljon semmit
 
-    const isCorrect = selectedButton.dataset.correct === 'true';
+    if (isDblModeActive) {
+        // Dupla esély mód
+        selectedButton.classList.toggle('selected'); // Jelöljük a választást lilával
+        selectedAnswers = Array.from(document.querySelectorAll('.answer.selected'));
+
+        if (selectedAnswers.length < 2) {
+            return; // Várjuk a második válaszra
+        }
+
+        // Ha megvan a két válasz, lezárjuk a további választás lehetőségét
+        answerProcessing = true;
+        document.querySelectorAll('.answer').forEach(btn => {
+            btn.disabled = true; // Gombok letiltása
+            if (!selectedAnswers.includes(btn)) {
+                btn.classList.add('deselected'); // A nem kiválasztottak beszürkítése
+            }
+        });
+
+        const isCorrect = selectedAnswers.some(btn => btn.dataset.correct === 'true');
+        const userAnswerText = selectedAnswers.map(btn => btn.dataset.answer).join(', ');
+        evaluateAnswer(isCorrect, selectedAnswers, userAnswerText);
+
+    } else {
+        // Normál mód
+        answerProcessing = true; // Lezárjuk a további kattintásokat
+
+        document.querySelectorAll('.answer').forEach(btn => {
+            btn.disabled = true; // Minden gomb letiltása
+            if (btn !== selectedButton) {
+                btn.classList.add('deselected'); // A többi gomb beszürkítése
+            }
+        });
+        selectedButton.classList.add('selected'); // A kiválasztott gomb lilára színezése
+
+        const isCorrect = selectedButton.dataset.correct === 'true';
+        evaluateAnswer(isCorrect, [selectedButton], selectedButton.dataset.answer);
+    }
+}
+
+function evaluateAnswer(isCorrect, selectedButtons, userAnswerText) {
     const drums = new Audio('audio/drums.mp3');
     drums.volume = parseFloat(document.getElementById('fx-volume').value);
     drums.play();
@@ -102,10 +223,25 @@ function handleAnswerClick(selectedButton) {
         sound.volume = parseFloat(document.getElementById('fx-volume').value);
         sound.play();
 
+        // SVG háttér színezése az eredmény alapján
+        const paths = document.querySelectorAll('#background-svg path');
+        const colors = isCorrect
+            ? ['#4CAF50', '#66BB6A', '#81C784', '#A5D6A7'] // Zöld árnyalatok
+            : ['#F44336', '#EF5350', '#E57373', '#EF9A9A']; // Piros árnyalatok
+        paths.forEach((p, i) => {
+            p.style.fill = colors[i];
+        });
+
+        // Helyes válasz(ok) zöldre színezése
         document.querySelectorAll('.answer').forEach(btn => {
             if (btn.dataset.correct === 'true') {
                 btn.classList.add('correct');
-            } else if (btn === selectedButton && !isCorrect) {
+            }
+        });
+
+        // A helytelenül kiválasztott gomb(ok) pirosra színezése
+        selectedButtons.forEach(btn => {
+            if (btn.dataset.correct !== 'true') {
                 btn.classList.add('incorrect');
             }
         });
@@ -117,10 +253,84 @@ function handleAnswerClick(selectedButton) {
                 origin: { y: 0.6 },
                 colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff']
             });
+            gameStats.correct++;
+        }
+
+        gameStats.total++;
+        gameStats.answers.push({
+            index: currentQuestionIndex,
+            question: quizData[currentQuestionIndex].question,
+            correct: isCorrect,
+            userAnswer: userAnswerText
+        });
+
+        // Trivia megjelenítése
+        const triviaDiv = document.getElementById('trivia');
+        const triviaText = document.querySelector('.trivia-text');
+        const question = quizData[currentQuestionIndex];
+        if (question.trivia && question.trivia.trim() !== '') {
+            triviaText.textContent = question.trivia;
+            triviaDiv.classList.remove('hidden');
         }
 
         document.getElementById('next-btn').classList.remove('hidden');
     }, 5000);
+}
+
+// Segítségek
+document.getElementById('half-btn').addEventListener('click', () => {
+    if (helpCounters.half <= 0 || answerProcessing) return;
+    helpCounters.half--;
+    updateHelpButtons();
+
+    const sound = new Audio('audio/half.mp3');
+    sound.volume = parseFloat(document.getElementById('fx-volume').value);
+    sound.play();
+
+    const buttons = Array.from(document.querySelectorAll('.answer:not(.hidden)'));
+    const incorrectButtons = buttons.filter(btn => btn.dataset.correct !== 'true');
+    
+    shuffleArray(incorrectButtons);
+
+    let removedCount = 0;
+    for (const btn of incorrectButtons) {
+        if (removedCount < 2) {
+            btn.classList.add('hidden');
+            removedCount++;
+        }
+    }
+});
+
+document.getElementById('hint-btn').addEventListener('click', () => {
+    if (helpCounters.hint <= 0 || answerProcessing) return;
+    helpCounters.hint--;
+    updateHelpButtons();
+
+    const question = quizData[currentQuestionIndex];
+    if (question.hint) {
+        const sound = new Audio('audio/hint.mp3');
+        sound.volume = parseFloat(document.getElementById('fx-volume').value);
+        sound.play();
+
+        const hintDiv = document.getElementById('hint');
+        const hintContent = document.querySelector('.hint-content');
+        hintContent.textContent = question.hint;
+        hintDiv.classList.remove('hidden');
+    }
+});
+
+document.getElementById('dbl-btn').addEventListener('click', () => {
+    if (helpCounters.dbl <= 0 || isDblModeActive || answerProcessing) return;
+    helpCounters.dbl--;
+    isDblModeActive = true;
+    updateHelpButtons();
+});
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }
 
 document.getElementById('next-btn').addEventListener('click', () => {
@@ -128,7 +338,45 @@ document.getElementById('next-btn').addEventListener('click', () => {
     if (currentQuestionIndex < quizData.length) {
         showQuestion();
     } else {
-        alert('🎉 Gratulálok, végeztél a kvízzel! 🎉');
-        location.reload();
+        showResults();
     }
 });
+
+function showResults() {
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('help-buttons').classList.add('hidden');
+    const resultsScreen = document.getElementById('results-screen');
+    const resultsContent = document.getElementById('results-content');
+    backgroundAudio.pause();
+    backgroundAudio.currentTime = 0;
+
+    const correctCount = gameStats.correct;
+    const totalCount = gameStats.total;
+    const percentage = totalCount > 0 ? ((correctCount / totalCount) * 100).toFixed(1) : 0;
+
+    document.getElementById('results-header').innerHTML = `${correctCount}/${totalCount} helyes válasz<br>(${percentage}%)`;
+
+    resultsContent.innerHTML = '<div class="results-list">';
+
+    gameStats.answers.forEach((ans, index) => {
+        const item = document.createElement('div');
+        item.classList.add('result-item');
+        if (ans.correct) {
+            item.classList.add('correct');
+        } else {
+            item.classList.add('incorrect');
+        }
+        item.innerHTML = `<strong>${index + 1}.</strong> ${ans.question} <span>${ans.correct ? '✅' : '❌'}</span>`;
+        resultsContent.appendChild(item);
+    });
+
+    resultsContent.innerHTML += '</div>';
+
+    document.getElementById('restart-btn').classList.remove('hidden');
+    resultsScreen.classList.remove('hidden');
+}
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+    location.reload();
+});
+
