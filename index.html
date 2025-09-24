@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="settings-panel">
+        <button id="settings-toggle">⚙️</button>
+        <div id="settings-content" class="hidden">
+            <label>
+                Háttérzene hangerő:
+                <input type="range" id="bg-volume" min="0" max="1" step="0.1" value="0.5">
+            </label>
+            <label>
+                Effektek hangerő:
+                <input type="range" id="fx-volume" min="0" max="1" step="0.1" value="0.7">
+            </label>
+        </div>
+    </div>
+
+    <div id="start-screen">
+        <h1>🌟 Kvíz Játék 🌟</h1>
+        <input type="file" id="json-upload" accept=".json">
+        <button id="start-btn">🎮 Indítás</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div id="background-music"></div>
+        <h2 id="question-text"></h2>
+        <img id="question-image" src="" alt="Kérdéshez tartozó kép" class="hidden">
+        <div id="answers-container"></div>
+        <button id="next-btn" class="hidden">➡️ Tovább</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
