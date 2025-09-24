@@ -320,6 +320,10 @@ document.getElementById('hint-btn').addEventListener('click', () => {
 });
 
 document.getElementById('dbl-btn').addEventListener('click', () => {
+    const sound = new Audio('audio/double.mp3');
+    sound.volume = parseFloat(document.getElementById('fx-volume').value);
+    sound.play();
+
     if (helpCounters.dbl <= 0 || isDblModeActive || answerProcessing) return;
     helpCounters.dbl--;
     isDblModeActive = true;
