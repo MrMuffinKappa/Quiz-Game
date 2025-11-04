@@ -1,7 +1,69 @@
 let quizData = [];
 let currentEditingIndex = -1;
+let language = 'HU-hu';
+let translationsMap = {}; // NEW: store loaded translations for editor
 
-// Start screen functionality
+// --- Localization / INI loader for editor ---
+function parseIni(text) {
+    const lines = text.split(/\r?\n/);
+    const obj = {};
+    for (let raw of lines) {
+        const line = raw.trim();
+        if (!line || line.startsWith(';') || line.startsWith('#')) continue;
+        const idx = line.indexOf('=');
+        if (idx === -1) continue;
+        const key = line.substring(0, idx).trim();
+        const val = line.substring(idx + 1).trim();
+        obj[key] = val;
+    }
+    return obj;
+}
+
+function applyTranslations(map, root = document) {
+    // If no explicit map is given, use the global one
+    const m = map || translationsMap || {};
+    root.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (!key) return;
+        if (m[key] !== undefined) {
+            // textContent keeps child input/select elements if needed
+            el.textContent = m[key];
+        }
+    });
+}
+
+async function loadLocale(lang) {
+    try {
+        const res = await fetch(`localization/${lang}.ini`);
+        if (!res.ok) throw new Error('Locale file not found');
+        const txt = await res.text();
+        const map = parseIni(txt);
+        translationsMap = map;           // save globally
+        applyTranslations(map);         // update UI
+        localStorage.setItem('quiz_lang', lang);
+        language = lang;
+        // Synchronize both select values, if they exist
+        const selTop = document.getElementById('lang-select');
+        const selEditor = document.getElementById('lang-select-editor');
+        if (selTop) selTop.value = lang;
+        if (selEditor) selEditor.value = lang;
+    } catch (err) {
+        console.warn('Failed to load locale', lang, err);
+    }
+}
+
+const storedLangEditor = language || 'HU-hu';
+document.addEventListener('DOMContentLoaded', () => {
+    // Single initialization: set language selectors
+    const sel = document.getElementById('lang-select');
+    if (sel) {
+        sel.value = storedLangEditor;
+        sel.addEventListener('change', (e) => loadLocale(e.target.value));
+    }
+    loadLocale(storedLangEditor);
+});
+
+// Start screen actions
 document.getElementById('new-quiz-btn').addEventListener('click', () => {
     quizData = [];
     showEditorScreen();
@@ -11,7 +73,7 @@ document.getElementById('load-quiz-btn').addEventListener('click', () => {
     const fileInput = document.getElementById('json-upload');
     const file = fileInput.files[0];
     if (!file) {
-        alert('Kérlek válassz egy JSON fájlt!');
+        alert('Please select a JSON file!');
         return;
     }
 
@@ -21,7 +83,7 @@ document.getElementById('load-quiz-btn').addEventListener('click', () => {
             quizData = JSON.parse(e.target.result);
             showEditorScreen();
         } catch (err) {
-            alert('Hiba a JSON fájl feldolgozása során!');
+            alert('Error parsing JSON file!');
         }
     };
     reader.readAsText(file);
@@ -55,6 +117,12 @@ function renderQuestionsList() {
         const hasImage = question.image && question.image.length > 0;
         const imageIcon = hasImage ? '🖼️' : '❌';
 
+        const hasHint = question.hint && question.hint.length > 0;
+        const hintText = hasHint ? question.hint : 'Nincs megadva';
+
+        const hasTrivia = question.trivia && question.trivia.length > 0;
+        const triviaText = hasTrivia ? question.trivia : 'Nincs megadva';
+
         questionItem.innerHTML = `
             <div class="question-content">
                 <h3>${question.question}</h3>
@@ -62,7 +130,9 @@ function renderQuestionsList() {
                 <p><strong>B:</strong> ${question.answers[1]}</p>
                 <p><strong>C:</strong> ${question.answers[2]}</p>
                 <p><strong>D:</strong> ${question.answers[3]}</p>
-                <p><strong>Kép:</strong> ${imageIcon}</p>
+                <p class="extra-info"><strong data-i18n="editor_hint">Segítség:</strong> ${hintText}</p>
+                <p class="extra-info"><strong data-i18n="editor_trivia">Érdekesség:</strong> ${triviaText}</p>
+                <p><strong data-i18n="editor_image">Kép:</strong> ${imageIcon}</p>
             </div>
             <div class="question-actions">
                 <button class="edit-btn" onclick="editQuestion(${index})">✏️ Szerkeszt</button>
@@ -72,6 +142,9 @@ function renderQuestionsList() {
 
         container.appendChild(questionItem);
     });
+
+    // Apply translations to newly created dynamic elements
+    applyTranslations(null, container);
 }
 
 // Drag and drop handlers
@@ -143,6 +216,10 @@ function editQuestion(index) {
     document.getElementById('wrong-answer-3').value = question.answers[3];
     document.getElementById('question-index').value = index;
 
+    // NEW: load hint and trivia into the form
+    document.getElementById('question-hint').value = question.hint || '';
+    document.getElementById('question-trivia').value = question.trivia || '';
+
     // Handle image preview
     if (question.image && question.image.length > 0) {
         document.getElementById('image-preview').src = question.image;
@@ -157,7 +234,7 @@ function editQuestion(index) {
 }
 
 function deleteQuestion(index) {
-    if (confirm('Biztosan törölni szeretnéd ezt a kérdést?')) {
+    if (confirm('Do you really want to delete this question?')) {
         quizData.splice(index, 1);
         renderQuestionsList();
     }
@@ -246,22 +323,28 @@ document.getElementById('question-form').addEventListener('submit', function(e) 
     const wrongAnswer2 = document.getElementById('wrong-answer-2').value;
     const wrongAnswer3 = document.getElementById('wrong-answer-3').value;
     
+    // NEW: read hint and trivia
+    const hintText = document.getElementById('question-hint').value;
+    const triviaText = document.getElementById('question-trivia').value;
+    
     const answers = [correctAnswer, wrongAnswer1, wrongAnswer2, wrongAnswer3];
     
-    // Get image data
+    // Get image data (save if data URL)
     let imageData = '';
-    const previewSrc = document.getElementById('image-preview').src;
-    if (previewSrc && !previewSrc.includes('data:image')) {
-        // If it's not a data URL, it means no image was uploaded
-        imageData = '';
-    } else if (previewSrc) {
+    const previewSrc = document.getElementById('image-preview').src || '';
+    if (previewSrc.startsWith('data:image')) {
         imageData = previewSrc;
+    } else {
+        imageData = '';
     }
     
     const questionObj = {
         question: questionText,
         answers: answers,
-        image: imageData
+        image: imageData,
+        // NEW fields
+        hint: hintText,
+        trivia: triviaText
     };
     
     if (currentEditingIndex >= 0) {
@@ -274,6 +357,7 @@ document.getElementById('question-form').addEventListener('submit', function(e) 
     
     renderQuestionsList();
     document.getElementById('question-modal').classList.add('hidden');
+    loadLocale(language);
 });
 
 // Download functionality

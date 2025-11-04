@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Háttér animáció -->
+    <!-- Background animation -->
     <div class="background-blur">
         <svg id="background-svg" preserveAspectRatio="xMidYMid slice" viewBox="10 10 80 80">
             <defs>
@@ -49,33 +49,43 @@
         <button id="settings-toggle">⚙️</button>
         <div id="settings-content" class="hidden">
             <label>
-                Háttérzene hangerő:
+                <span data-i18n="settings_bg_volume">Background music volume:</span>
                 <input type="range" id="bg-volume" min="0" max="1" step="0.1" value="0.5">
             </label>
             <label>
-                Effektek hangerő:
+                <span data-i18n="settings_fx_volume">Effects volume:</span>
                 <input type="range" id="fx-volume" min="0" max="1" step="0.1" value="0.7">
+            </label>
+            <label>
+	            <span data-i18n="language_label">Language</span>
+                    <select id="lang-select">
+                        <option value="HU-hu">Magyar (HU)</option>
+                        <option value="EN-en">English (EN)</option>
+                        <option value="DE-de">Deutsch (DE)</option>
+                        <option value="ZH-zh">中文 (ZH)</option>
+                    </select>
             </label>
         </div>
     </div>
     
     <div id="help-buttons" class="hidden">
-        <button id="half-btn" class="help-btn" title="Felezés (Eltávolít 2 rossz választ)">🔪<span class="help-counter">1</span></button>
-        <button id="hint-btn" class="help-btn" title="Tipp (Mutat egy tippet)">💡<span class="help-counter">1</span></button>
-        <button id="dbl-btn" class="help-btn" title="Dupla esély (2 választás)">✌️<span class="help-counter">1</span></button>
+        <button id="half-btn" class="help-btn" title="50/50 (removes 2 wrong answers)">🔪<span class="help-counter">1</span></button>
+        <button id="hint-btn" class="help-btn" title="Hint (show a hint)">💡<span class="help-counter">1</span></button>
+        <button id="dbl-btn" class="help-btn" title="Double chance (choose 2 answers)">✌️<span class="help-counter">1</span></button>
     </div>
 
     <div id="start-screen">
-        <h1>🌟 Kvíz Játék 🌟</h1>
+        <h1 data-i18n="title_main">🌟 Quiz Game 🌟</h1>
+        <label for="json-upload" data-i18n="json_upload_label">Choose a quiz JSON file:</label>
         <input type="file" id="json-upload" accept=".json">
         <div id="help-toggle-container">
-            <button id="help-toggle" class="help-toggle-btn">💡 Segítségek</button>
+            <button id="help-toggle" class="help-toggle-btn" data-i18n="help_toggle">💡 Helpers</button>
         </div>
         <div id="help-options" class="hidden">
             <div class="help-option">
                 <div>
-                    <h4>Felezés</h4>
-                    <p class="help-desc">Elveszi a lehetséges válaszok felét így csak 2 válaszlehetőség marad</p>
+                    <h4 data-i18n="help_half_title">Felezés</h4>
+                    <p class="help-desc" data-i18n="help_half_desc">Elveszi a lehetséges válaszok felét így csak 2 válaszlehetőség marad</p>
                 </div>
                 <div class="help-controls">
                     <button id="dec-half" class="control-btn">-</button>
@@ -85,8 +95,8 @@
             </div>
             <div class="help-option">
                 <div>
-                    <h4>Hint</h4>
-                    <p class="help-desc">Mutat egy tippet a kérdéshez</p>
+                    <h4 data-i18n="help_hint_title">Hint</h4>
+                    <p class="help-desc" data-i18n="help_hint_desc">Mutat egy tippet a kérdéshez</p>
                 </div>
                 <div class="help-controls">
                     <button id="dec-hint" class="control-btn">-</button>
@@ -96,8 +106,8 @@
             </div>
             <div class="help-option">
                 <div>
-                    <h4>Dupla esély</h4>
-                    <p class="help-desc">Lehetőséged van két választani</p>
+                    <h4 data-i18n="help_dbl_title">Dupla esély</h4>
+                    <p class="help-desc" data-i18n="help_dbl_desc">Lehetőséged van két választani</p>
                 </div>
                 <div class="help-controls">
                     <button id="dec-dbl" class="control-btn">-</button>
@@ -106,13 +116,14 @@
                 </div>
             </div>
         </div>
-        <button id="start-btn">🎮 Indítás</button>
+        <button id="editor-btn" data-i18n="editor_toggle" onclick=" window.open('http://quiz.mrmuffin.dev/editor.html','_blank')">✏️ Editor</button>
+        <button id="start-btn" data-i18n="start_button">🎮 Start</button>
     </div>
-
+ 
     <div id="quiz-screen" class="hidden">
         <div id="background-music"></div>
-        <div id="progress">1/1</div>
-        <h2 id="question-text"></h2>
+    <div id="progress">1/1</div>
+    <h2 id="question-text"></h2>
         <div id="hint" class="hint-box hidden">
             <span>💡</span>
             <span class="hint-content"></span>
@@ -120,22 +131,23 @@
         <img id="question-image" src="" alt="Kérdéshez tartozó kép" class="hidden">
         <div id="answers-container"></div>
         <div id="trivia" class="trivia-box hidden">
-            <div class="trivia-header">Trívia</div>
+            <div class="trivia-header">Trivia</div>
             <div class="trivia-content">
                 <span>🧠</span>
                 <span class="trivia-text"></span>
             </div>
         </div>
-        <button id="next-btn" class="hidden">➡️ Tovább</button>
+        <button id="next-btn" class="hidden" data-i18n="next_button">➡️ Tovább</button>
     </div>
-
+ 
     <div id="results-screen" class="hidden">
-        <h2 id="results-header">Eredmény</h2>
-        <div id="results-content"></div>
-        <button id="restart-btn" class="hidden">🔄 Új játék</button>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-    <script src="script.js"></script>
-</body>
-</html>
+         <h2 id="results-header" data-i18n="results_header">Eredmény</h2>
+         <div id="results-summary" aria-live="polite"></div>
+         <div id="results-content"></div>
+         <button id="restart-btn" class="hidden" data-i18n="restart_button">🔄 New Game</button>
+     </div>
+ 
+     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+     <script src="script.js"></script>
+ </body>
+ </html>

@@ -2,31 +2,94 @@ let quizData = [];
 let currentQuestionIndex = 0;
 let backgroundAudio = new Audio('audio/background.mp3');
 backgroundAudio.loop = true;
+let translationsMap = {}; // NEW: store loaded translations
 
-// Segítségek számolása
+// --- Localization / INI loader ---
+function parseIni(text) {
+    const lines = text.split(/\r?\n/);
+    const obj = {};
+    for (let raw of lines) {
+        const line = raw.trim();
+        if (!line || line.startsWith(';') || line.startsWith('#')) continue;
+        const idx = line.indexOf('=');
+        if (idx === -1) continue;
+        const key = line.substring(0, idx).trim();
+        const val = line.substring(idx + 1).trim();
+        obj[key] = val;
+    }
+    return obj;
+}
+
+// Safe getter for inputs that may not exist
+function safeGetValue(id, defaultVal) {
+    const el = document.getElementById(id);
+    if (!el) return defaultVal;
+    return (el.value === undefined || el.value === null) ? defaultVal : el.value;
+}
+
+function applyTranslations(map) {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (!key) return;
+        if (map[key] !== undefined) {
+            // use textContent to avoid removing child elements (inputs/selects) inside labels
+            el.textContent = map[key];
+        }
+    });
+}
+
+async function loadLocale(lang) {
+    try {
+        const res = await fetch(`localization/${lang}.ini`);
+        if (!res.ok) throw new Error('Locale file not found');
+        const txt = await res.text();
+        const map = parseIni(txt);
+        translationsMap = map; // mentjük globálisan
+        applyTranslations(map);
+        localStorage.setItem('quiz_lang', lang);
+        const sel = document.getElementById('lang-select');
+        if (sel) sel.value = lang;
+    } catch (err) {
+        console.warn('Failed to load locale', lang, err);
+    }
+}
+
+// initialize language at startup
+const storedLang = localStorage.getItem('quiz_lang') || 'HU-hu';
+document.addEventListener('DOMContentLoaded', () => {
+    const sel = document.getElementById('lang-select');
+    if (sel) {
+        sel.value = storedLang;
+        sel.addEventListener('change', (e) => loadLocale(e.target.value));
+    }
+    loadLocale(storedLang);
+});
+
+
+// Help counters
 let helpCounters = {
     half: 1,
     hint: 1,
     dbl: 1
 };
 
-// Játék állapot
+// Game statistics
 let gameStats = {
     correct: 0,
     total: 0,
     answers: []
 };
 
-// Játék állapotjelzők
+// Game state flags
 let isDblModeActive = false;
 let selectedAnswers = [];
 let answerProcessing = false;
 
 // Beállítások kezelése
-document.getElementById('settings-toggle').addEventListener('click', function() {
+/*document.getElementById('settings-toggle').addEventListener('click', function() {
     const content = document.getElementById('settings-content');
     content.classList.toggle('hidden');
-});
+});*/
 
 document.getElementById('bg-volume').addEventListener('input', function(e) {
     backgroundAudio.volume = parseFloat(e.target.value);
@@ -78,12 +141,12 @@ document.getElementById('dec-dbl').addEventListener('click', () => {
     }
 });
 
-// Játék indítása
+// Start game
 document.getElementById('start-btn').addEventListener('click', () => {
     const fileInput = document.getElementById('json-upload');
     const file = fileInput.files[0];
     if (!file) {
-        alert('Kérlek válassz egy JSON fájlt!');
+        alert('Please choose a JSON file!');
         return;
     }
 
@@ -99,7 +162,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
             gameStats = { correct: 0, total: 0, answers: [] };
             showQuestion();
         } catch (err) {
-            alert('Hiba a JSON fájl feldolgozása során!');
+            alert('Error processing JSON file!');
         }
     };
     reader.readAsText(file);
@@ -215,12 +278,12 @@ function handleAnswerClick(selectedButton) {
 
 function evaluateAnswer(isCorrect, selectedButtons, userAnswerText) {
     const drums = new Audio('audio/drums.mp3');
-    drums.volume = parseFloat(document.getElementById('fx-volume').value);
+    drums.volume = parseFloat(safeGetValue('fx-volume', '0.7'));
     drums.play();
 
     setTimeout(() => {
         const sound = new Audio(isCorrect ? 'audio/good.mp3' : 'audio/bad.mp3');
-        sound.volume = parseFloat(document.getElementById('fx-volume').value);
+        sound.volume = parseFloat(safeGetValue('fx-volume', '0.7'));
         sound.play();
 
         // SVG háttér színezése az eredmény alapján
@@ -284,7 +347,7 @@ document.getElementById('half-btn').addEventListener('click', () => {
     updateHelpButtons();
 
     const sound = new Audio('audio/half.mp3');
-    sound.volume = parseFloat(document.getElementById('fx-volume').value);
+    sound.volume = parseFloat(safeGetValue('fx-volume', '0.7'));
     sound.play();
 
     const buttons = Array.from(document.querySelectorAll('.answer:not(.hidden)'));
@@ -309,7 +372,7 @@ document.getElementById('hint-btn').addEventListener('click', () => {
     const question = quizData[currentQuestionIndex];
     if (question.hint) {
         const sound = new Audio('audio/hint.mp3');
-        sound.volume = parseFloat(document.getElementById('fx-volume').value);
+        sound.volume = parseFloat(safeGetValue('fx-volume', '0.7'));
         sound.play();
 
         const hintDiv = document.getElementById('hint');
@@ -346,6 +409,28 @@ document.getElementById('next-btn').addEventListener('click', () => {
     }
 });
 
+const settingsToggle = document.getElementById('settings-toggle');
+if (settingsToggle) {
+    settingsToggle.addEventListener('click', function() {
+        const content = document.getElementById('settings-content');
+        if (content) content.classList.toggle('hidden');
+    });
+}
+
+const bgVolEl = document.getElementById('bg-volume');
+if (bgVolEl) {
+    bgVolEl.addEventListener('input', function(e) {
+        backgroundAudio.volume = parseFloat(e.target.value);
+    });
+}
+
+const fxVolEl = document.getElementById('fx-volume');
+if (fxVolEl) {
+    fxVolEl.addEventListener('input', function(e) {
+        // Ez a hangerő a hatásokra vonatkozik
+    });
+}
+
 function showResults() {
     document.getElementById('quiz-screen').classList.add('hidden');
     document.getElementById('help-buttons').classList.add('hidden');
@@ -358,10 +443,15 @@ function showResults() {
     const totalCount = gameStats.total;
     const percentage = totalCount > 0 ? ((correctCount / totalCount) * 100).toFixed(1) : 0;
 
-    document.getElementById('results-header').innerHTML = `${correctCount}/${totalCount} helyes válasz<br>(${percentage}%)`;
+    // A fejléc (results-header) lokalizált szövegét a data-i18n attribútum kezeli.
+    // Az összegzés lokalizált sablonnal töltődik be ide: #results-summary
+    const tpl = (translationsMap && translationsMap['results_summary']) || '{correct}/{total} helyes válasz<br>({percent}%)';
+    const summaryHtml = tpl.replace('{correct}', correctCount).replace('{total}', totalCount).replace('{percent}', percentage);
+    const summaryEl = document.getElementById('results-summary');
+    if (summaryEl) summaryEl.innerHTML = summaryHtml;
 
     resultsContent.innerHTML = '<div class="results-list">';
-
+    
     gameStats.answers.forEach((ans, index) => {
         const item = document.createElement('div');
         item.classList.add('result-item');
@@ -383,4 +473,11 @@ function showResults() {
 document.getElementById('restart-btn').addEventListener('click', () => {
     location.reload();
 });
+
+function deleteQuestion(index) {
+    if (confirm('Are you sure you want to delete this question?')) {
+        quizData.splice(index, 1);
+        renderQuestionsList();
+    }
+}
 

@@ -23,6 +23,63 @@
             display: none !important;
         }
 
+        .lang-panel {
+           position: fixed;
+           top: 18px;
+           right: 18px;
+           z-index: 2000;
+           background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+           border: 1px solid rgba(255,255,255,0.12);
+           padding: 8px 12px;
+           border-radius: 14px;
+           backdrop-filter: blur(6px);
+           display: flex;
+           align-items: center;
+           gap: 8px;
+           color: white;
+           box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+           font-size: 0.95rem;
+       }
+       .lang-panel select {
+           background: rgba(255,255,255,0.12);
+           color: white;
+           border: none;
+           padding: 6px 8px;
+           border-radius: 8px;
+           font-weight: 600;
+           outline: none;
+       }
+
+        .lang-panel-editor {
+           position: fixed;
+           top: 18px;
+           right: 18px;
+           z-index: 2000;
+           background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+           border: 1px solid rgba(255,255,255,0.12);
+           padding: 8px 12px;
+           border-radius: 14px;
+           backdrop-filter: blur(6px);
+           display: flex;
+           align-items: center;
+           gap: 8px;
+           color: white;
+           box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+           font-size: 0.95rem;
+       }
+       .lang-panel-editor select {
+           background: rgba(255,255,255,0.12);
+           color: white;
+           border: none;
+           padding: 6px 8px;
+           border-radius: 8px;
+           font-weight: 600;
+           outline: none;
+       }
+
+        /* Optionok böngészőben fekete szöveget igényelnek, ezért explicit beállítás */
+       .lang-panel select option { color: black; }
+       .lang-panel-editor select option { color: black; }
         #start-screen {
             padding: 50px;
             display: flex;
@@ -338,32 +395,60 @@
 </head>
 <body>
     <div id="start-screen">
-        <h1>📝 Kvíz Szerkesztő</h1>
+        <h1 data-i18n="editor_title">📝 Quiz Editor</h1>
+
+
+    <!-- NOTE: language selector visible in top-right -->
+    <div id="lang-panel" class="lang-panel" aria-label="Nyelv választó">
+        <label style="display:flex;align-items:center;gap:8px;margin:0;">
+            <span data-i18n="language_label" style="font-weight:600;">Language</span>
+            <select id="lang-select">
+                <option value="HU-hu">Magyar (HU)</option>
+                <option value="EN-en">English (EN)</option>
+                <option value="DE-de">Deutsch (DE)</option>
+                <option value="ZH-zh">中文 (ZH)</option>
+            </select>
+        </label>
+    </div>
+
+
         <div class="start-options">
             <div class="option">
-                <h3>Új kvíz létrehozása</h3>
-                <button id="new-quiz-btn">🆕 Új kvíz</button>
+                <h3 data-i18n="editor_new_quiz">Create a new quiz</h3>
+                <button id="new-quiz-btn" data-i18n="editor_new_quiz_btn">🆕 New Quiz</button>
             </div>
             <div class="option">
-                <h3>Meglévő kvíz betöltése</h3>
+                <h3 data-i18n="editor_load_quiz">Load existing quiz</h3>
                 <input type="file" id="json-upload" accept=".json">
-                <button id="load-quiz-btn">📂 Betöltés</button>
+                <button id="load-quiz-btn" data-i18n="editor_load_quiz_btn">📂 Load</button>
             </div>
         </div>
     </div>
 
     <div id="editor-screen" class="hidden">
-        <h1>✏️ Kvíz Szerkesztő</h1>
+    <h1 data-i18n="editor_header">✏️ Kvíz Szerkesztő</h1>
+
+        <div id="lang-panel-editor" class="lang-panel-editor" aria-label="Nyelv választó">
+        <label style="display:flex;align-items:center;gap:8px;margin:0;">
+            <span data-i18n="language_label" style="font-weight:600;">Nyelv</span>
+            <select id="lang-select-editor">
+                <option value="HU-hu">Magyar (HU)</option>
+                <option value="EN-en">English (EN)</option>
+                <option value="DE-de">Deutsch (DE)</option>
+                <option value="ZH-zh">中文 (ZH)</option>
+            </select>
+        </label>
+    </div>
         
         <div id="questions-list-container">
-            <h2>Kérdések</h2>
+            <h2 data-i18n="editor_questions">Kérdések</h2>
             <div id="questions-list"></div>
         </div>
 
         <div class="editor-actions">
             <input type="text" id="filename-input" placeholder="File név (pl.: quiz)" value="quiz">
-            <button id="add-question-btn">➕ Új kérdés</button>
-            <button id="download-btn">💾 Letöltés</button>
+            <button id="add-question-btn" data-i18n="editor_add_question">➕ Új kérdés</button>
+            <button id="download-btn" data-i18n="editor_download">💾 Letöltés</button>
         </div>
     </div>
 
@@ -371,380 +456,67 @@
     <div id="question-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Kérdés szerkesztése</h2>
+            <h2 data-i18n="editor_edit_title">Edit Question</h2>
             <form id="question-form">
                 <div class="form-group">
-                    <label for="question-text">Kérdés:</label>
+                    <label for="question-text" data-i18n="editor_question">Question:</label>
                     <input type="text" id="question-text" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="correct-answer">Helyes válasz (A):</label>
+                    <label for="correct-answer" data-i18n="correct-answer">Helyes válasz (A):</label>
                     <input type="text" id="correct-answer" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="wrong-answer-1">Helytelen válasz (B):</label>
+                    <label for="wrong-answer-1" data-i18n="wrong-answer-1">Helytelen válasz (B):</label>
                     <input type="text" id="wrong-answer-1" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="wrong-answer-2">Helytelen válasz (C):</label>
+                    <label for="wrong-answer-2" data-i18n="wrong-answer-2">Helytelen válasz (C):</label>
                     <input type="text" id="wrong-answer-2" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="wrong-answer-3">Helytelen válasz (D):</label>
+                    <label for="wrong-answer-3" data-i18n="wrong-answer-3">Helytelen válasz (D):</label>
                     <input type="text" id="wrong-answer-3" required>
                 </div>
                 
                 <!-- ÚJ MEZŐK -->
                 <div class="form-group">
-                    <label for="question-hint">Segítség (Hint):</label>
+                    <label for="question-hint" data-i18n="editor_hint">Hint:</label>
                     <input type="text" id="question-hint">
                 </div>
 
                 <div class="form-group">
-                    <label for="question-trivia">Érdekesség (Trivia):</label>
+                    <label for="question-trivia" data-i18n="editor_trivia">Trivia:</label>
                     <input type="text" id="question-trivia">
                 </div>
                 <!-- ÚJ MEZŐK VÉGE -->
                 
                 <div class="form-group">
-                    <label>Kép:</label>
+                    <label data-i18n="editor_image">Kép:</label>
                     <div id="image-preview-container" class="hidden">
                         <img id="image-preview" src="" alt="Előnézet">
                         <div class="image-actions">
                             <input type="file" id="image-upload" accept="image/*" class="hidden">
-                            <button type="button" id="change-image-btn">🖼️ Módosítás</button>
-                            <button type="button" id="remove-image-btn">🗑️ Törlés</button>
+                            <button type="button" id="change-image-btn" data-i18n="editor_edit_image">🖼️ Módosítás</button>
+                            <button type="button" id="remove-image-btn" data-i18n="editor_delete_image">🗑️ Törlés</button>
                         </div>
                     </div>
                     <div id="no-image-container">
                         <input type="file" id="new-image-upload" accept="image/*">
-                        <p>Nincs kép hozzáadva</p>
+                        <p data-i18n="editor_no_image">No image added</p>
                     </div>
                 </div>
                 
                 <input type="hidden" id="question-index">
-                <button type="submit" id="save-question-btn">💾 Mentés</button>
+                <button type="submit" id="save-question-btn" data-i18n="editor_save_btn">💾 Save</button>
             </form>
         </div>
     </div>
 
-    <script>
-        let quizData = [];
-        let currentEditingIndex = -1;
-
-        // Start screen functionality
-        document.getElementById('new-quiz-btn').addEventListener('click', () => {
-            quizData = [];
-            showEditorScreen();
-        });
-
-        document.getElementById('load-quiz-btn').addEventListener('click', () => {
-            const fileInput = document.getElementById('json-upload');
-            const file = fileInput.files[0];
-            if (!file) {
-                alert('Kérlek válassz egy JSON fájlt!');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    quizData = JSON.parse(e.target.result);
-                    showEditorScreen();
-                } catch (err) {
-                    alert('Hiba a JSON fájl feldolgozása során!');
-                }
-            };
-            reader.readAsText(file);
-        });
-
-        function showEditorScreen() {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('editor-screen').classList.remove('hidden');
-            renderQuestionsList();
-        }
-
-        // Editor functionality
-        function renderQuestionsList() {
-            const container = document.getElementById('questions-list');
-            container.innerHTML = '';
-
-            quizData.forEach((question, index) => {
-                const questionItem = document.createElement('div');
-                questionItem.className = 'question-item';
-                questionItem.draggable = true;
-                questionItem.dataset.index = index;
-
-                // Drag and drop functionality
-                questionItem.addEventListener('dragstart', handleDragStart);
-                questionItem.addEventListener('dragover', handleDragOver);
-                questionItem.addEventListener('dragenter', handleDragEnter);
-                questionItem.addEventListener('dragleave', handleDragLeave);
-                questionItem.addEventListener('drop', handleDrop);
-                questionItem.addEventListener('dragend', handleDragEnd);
-
-                const hasImage = question.image && question.image.length > 0;
-                const imageIcon = hasImage ? '🖼️' : '❌';
-                
-                const hasHint = question.hint && question.hint.length > 0;
-                const hintText = hasHint ? question.hint : 'Nincs megadva';
-
-                const hasTrivia = question.trivia && question.trivia.length > 0;
-                const triviaText = hasTrivia ? question.trivia : 'Nincs megadva';
-
-                questionItem.innerHTML = `
-                    <div class="question-content">
-                        <h3>${question.question}</h3>
-                        <p><strong>A:</strong> ${question.answers[0]}</p>
-                        <p><strong>B:</strong> ${question.answers[1]}</p>
-                        <p><strong>C:</strong> ${question.answers[2]}</p>
-                        <p><strong>D:</strong> ${question.answers[3]}</p>
-                        <p class="extra-info"><strong>Segítség:</strong> ${hintText}</p>
-                        <p class="extra-info"><strong>Érdekesség:</strong> ${triviaText}</p>
-                        <p><strong>Kép:</strong> ${imageIcon}</p>
-                    </div>
-                    <div class="question-actions">
-                        <button class="edit-btn" onclick="editQuestion(${index})">✏️ Szerkeszt</button>
-                        <button class="delete-btn" onclick="deleteQuestion(${index})">🗑️ Töröl</button>
-                    </div>
-                `;
-
-                container.appendChild(questionItem);
-            });
-        }
-
-        // Drag and drop handlers
-        let dragSrcEl = null;
-
-        function handleDragStart(e) {
-            dragSrcEl = this;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.innerHTML);
-            this.classList.add('dragging');
-        }
-
-        function handleDragOver(e) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-            e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-
-        function handleDragEnter(e) {
-            this.classList.add('drag-over');
-        }
-
-        function handleDragLeave(e) {
-            this.classList.remove('drag-over');
-        }
-
-        function handleDrop(e) {
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            if (dragSrcEl !== this) {
-                const srcIndex = parseInt(dragSrcEl.dataset.index);
-                const targetIndex = parseInt(this.dataset.index);
-                
-                // Move item in array
-                const movedItem = quizData.splice(srcIndex, 1)[0];
-                quizData.splice(targetIndex, 0, movedItem);
-                
-                renderQuestionsList();
-            }
-
-            return false;
-        }
-
-        function handleDragEnd(e) {
-            document.querySelectorAll('.question-item').forEach(item => {
-                item.classList.remove('dragging', 'drag-over');
-            });
-        }
-
-        // Question operations
-        function editQuestion(index) {
-            currentEditingIndex = index;
-            const question = quizData[index];
-            
-            document.getElementById('question-text').value = question.question;
-            document.getElementById('correct-answer').value = question.answers[0];
-            document.getElementById('wrong-answer-1').value = question.answers[1];
-            document.getElementById('wrong-answer-2').value = question.answers[2];
-            document.getElementById('wrong-answer-3').value = question.answers[3];
-            
-            // ÚJ MEZŐK ÉRTÉKEINEK BEÁLLÍTÁSA
-            document.getElementById('question-hint').value = question.hint || '';
-            document.getElementById('question-trivia').value = question.trivia || '';
-
-            document.getElementById('question-index').value = index;
-
-            // Handle image preview
-            if (question.image && question.image.length > 0) {
-                document.getElementById('image-preview').src = question.image;
-                document.getElementById('image-preview-container').classList.remove('hidden');
-                document.getElementById('no-image-container').classList.add('hidden');
-            } else {
-                document.getElementById('image-preview-container').classList.add('hidden');
-                document.getElementById('no-image-container').classList.remove('hidden');
-            }
-
-            document.getElementById('question-modal').classList.remove('hidden');
-        }
-
-        function deleteQuestion(index) {
-            if (confirm('Biztosan törölni szeretnéd ezt a kérdést?')) {
-                quizData.splice(index, 1);
-                renderQuestionsList();
-            }
-        }
-
-        document.getElementById('add-question-btn').addEventListener('click', () => {
-            currentEditingIndex = -1;
-            
-            // Clear form
-            document.getElementById('question-form').reset();
-            document.getElementById('question-index').value = '';
-            
-            // Hide image preview, show upload
-            document.getElementById('image-preview-container').classList.add('hidden');
-            document.getElementById('no-image-container').classList.remove('hidden');
-            
-            document.getElementById('question-modal').classList.remove('hidden');
-        });
-
-        // Modal close
-        document.querySelector('.close').addEventListener('click', () => {
-            document.getElementById('question-modal').classList.add('hidden');
-        });
-
-        // Image upload functionality
-        document.getElementById('change-image-btn').addEventListener('click', () => {
-            document.getElementById('image-upload').click();
-        });
-
-        document.getElementById('image-upload').addEventListener('change', function(e) {
-            handleImageUpload(e, 'image-preview');
-        });
-
-        document.getElementById('new-image-upload').addEventListener('change', function(e) {
-            handleImageUpload(e, 'image-preview');
-        });
-
-        document.getElementById('remove-image-btn').addEventListener('click', () => {
-            document.getElementById('image-preview').src = '';
-            document.getElementById('image-preview-container').classList.add('hidden');
-            document.getElementById('no-image-container').classList.remove('hidden');
-        });
-
-        function handleImageUpload(event, previewId) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        if (height > 1000) {
-                            const ratio = 1000 / height;
-                            width = Math.round(width * ratio);
-                            height = 1000;
-                        }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                        document.getElementById(previewId).src = resizedDataUrl;
-                        document.getElementById('image-preview-container').classList.remove('hidden');
-                        document.getElementById('no-image-container').classList.add('hidden');
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Save question
-        document.getElementById('question-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const questionText = document.getElementById('question-text').value;
-            const correctAnswer = document.getElementById('correct-answer').value;
-            const wrongAnswer1 = document.getElementById('wrong-answer-1').value;
-            const wrongAnswer2 = document.getElementById('wrong-answer-2').value;
-            const wrongAnswer3 = document.getElementById('wrong-answer-3').value;
-            
-            // ÚJ MEZŐK ÉRTÉKEINEK KIOLVASÁSA
-            const hintText = document.getElementById('question-hint').value;
-            const triviaText = document.getElementById('question-trivia').value;
-            
-            const answers = [correctAnswer, wrongAnswer1, wrongAnswer2, wrongAnswer3];
-            
-            let imageData = '';
-            const previewSrc = document.getElementById('image-preview').src;
-            if (previewSrc.startsWith('data:image')) {
-                imageData = previewSrc;
-            }
-            
-            const questionObj = {
-                question: questionText,
-                answers: answers,
-                image: imageData,
-                hint: hintText,
-                trivia: triviaText
-            };
-            
-            if (currentEditingIndex >= 0) {
-                quizData[currentEditingIndex] = questionObj;
-            } else {
-                quizData.push(questionObj);
-            }
-            
-            renderQuestionsList();
-            document.getElementById('question-modal').classList.add('hidden');
-        });
-
-        // Download functionality
-        document.getElementById('download-btn').addEventListener('click', () => {
-            if (quizData.length === 0) {
-                alert('Nincs mit letölteni!');
-                return;
-            }
-            
-            const filename = document.getElementById('filename-input').value || 'quiz';
-            const jsonStr = JSON.stringify(quizData, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${filename}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-            const modal = document.getElementById('question-modal');
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-            }
-        });
-    </script>
+    <script src="editor_files/editor_script.js"></script>
 </body>
 </html>
