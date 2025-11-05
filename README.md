@@ -40,15 +40,10 @@ You can also use editor extensions such as VS Code Live Server or any static ser
 - To change languages, check the `localization/` folder (for example `EN-en.ini`, `HU-hu.ini`).
 - Edit `quiz.json` or use `editor.html` to modify quiz content.
 
-## Author & License
+## Author
 
 Developed by: Chlebik Dávid
 
-This project is free for anyone to use. If you want an explicit open license, consider adding a `LICENSE` file (e.g. MIT or CC0).
-
----
-
-If you like, I can also add a `LICENSE` file (MIT/CC0) or a short CONTRIBUTING guide.
 
 ## License
 
