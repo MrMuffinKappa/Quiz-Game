@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz – Játékos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="mp-player-body">
+    <div class="background-blur">
+        <svg preserveAspectRatio="xMidYMid slice" viewBox="10 10 80 80">
+            <path fill="#9b5de5" d="M37-5C25.1-14.7,5.7-19.1-9.2-10-28.5,1.8-32.7,31.1-19.8,49c15.5,21.5,52.6,22,67.2,2.3C59.4,35,53.7,8.5,37-5Z"/>
+            <path fill="#f15bb5" d="M20.6,4.1C11.6,1.5-1.9,2.5-8,11.2-16.3,23.1-8.2,45.6,7.4,50S42.1,38.9,41,24.5C40.2,14.1,29.4,6.6,20.6,4.1Z"/>
+        </svg>
+    </div>
+
+    <div id="settings-panel">
+        <button id="settings-toggle" type="button">⚙️</button>
+        <div id="settings-content" class="hidden">
+            <label>
+                <span data-i18n="settings_fx_volume">Effekt:</span>
+                <input type="range" id="fx-volume" min="0" max="1" step="0.1" value="0.7">
+            </label>
+            <label>
+                <span data-i18n="language_label">Nyelv</span>
+                <select id="lang-select">
+                    <option value="HU-hu">Magyar (HU)</option>
+                    <option value="EN-en">English (EN)</option>
+                </select>
+            </label>
+        </div>
+    </div>
+
+    <a href="multiplayer.html" class="mp-back-link" data-i18n="mp_back">← Vissza</a>
+
+    <div id="help-buttons" class="hidden">
+        <button id="half-btn" type="button" class="help-btn" title="50/50">🔪<span class="help-counter">0</span></button>
+        <button id="hint-btn" type="button" class="help-btn" title="Hint">💡<span class="help-counter">0</span></button>
+        <button id="dbl-btn" type="button" class="help-btn" title="Double">✌️<span class="help-counter">0</span></button>
+    </div>
+
+    <div id="mp-join-screen" class="mp-screen">
+        <h1 data-i18n="mp_player_title">📱 Játékos</h1>
+        <label for="mp-room-input" data-i18n="mp_room_code">Szobakód:</label>
+        <input id="mp-room-input" type="text" maxlength="4" placeholder="ABCD" autocomplete="off">
+        <label for="mp-name-input" data-i18n="mp_your_name">Neved:</label>
+        <input id="mp-name-input" type="text" maxlength="24" placeholder="Anna">
+        <p id="mp-join-status" class="mp-status"></p>
+        <button id="mp-join-btn" type="button" class="mp-btn-primary" data-i18n="mp_join">Csatlakozás</button>
+        <button id="mp-retry-btn" type="button" class="hidden mp-btn-secondary" data-i18n="mp_retry">Újrapróbálás</button>
+    </div>
+
+    <div id="mp-wait-screen" class="mp-screen hidden">
+        <h2 data-i18n="mp_lobby_wait">Várakozás a játékra…</h2>
+        <p id="mp-wait-room" class="mp-room-code"></p>
+        <p id="mp-your-score" class="mp-your-score"></p>
+    </div>
+
+    <div id="mp-game-screen" class="mp-screen hidden">
+        <p id="mp-player-progress" class="mp-progress"></p>
+        <p id="mp-your-score-game" class="mp-your-score"></p>
+        <h2 id="question-text"></h2>
+        <div id="hint" class="hint-box hidden">
+            <span>💡</span>
+            <span class="hint-content"></span>
+        </div>
+        <div id="answers-container"></div>
+        <p id="mp-player-status" class="mp-status-line mp-phase-status hidden"></p>
+        <div id="mp-result-banner" class="mp-result-banner hidden"></div>
+    </div>
+
+    <div id="mp-end-screen" class="mp-screen hidden">
+        <h2 data-i18n="mp_final_scores">Végeredmény</h2>
+        <div id="mp-final-standings"></div>
+        <div id="mp-answer-matrix-wrap" class="mp-matrix-wrap"></div>
+        <button id="mp-rejoin" type="button" class="mp-btn-primary" data-i18n="mp_rejoin">Újra csatlakozás</button>
+    </div>
+
+    <script src="shared/multiplayer-client.js"></script>
+    <script src="player.js"></script>
+</body>
+</html>

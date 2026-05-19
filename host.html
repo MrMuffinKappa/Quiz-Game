@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz – Műsorvezető</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="mp-host-body">
+    <div class="background-blur">
+        <svg id="background-svg" preserveAspectRatio="xMidYMid slice" viewBox="10 10 80 80">
+            <path fill="#9b5de5" d="M37-5C25.1-14.7,5.7-19.1-9.2-10-28.5,1.8-32.7,31.1-19.8,49c15.5,21.5,52.6,22,67.2,2.3C59.4,35,53.7,8.5,37-5Z"/>
+            <path fill="#f15bb5" d="M20.6,4.1C11.6,1.5-1.9,2.5-8,11.2-16.3,23.1-8.2,45.6,7.4,50S42.1,38.9,41,24.5C40.2,14.1,29.4,6.6,20.6,4.1Z"/>
+            <path fill="#00bbf9" d="M105.9,48.6c-12.4-8.2-29.3-4.8-39.4.8-23.4,12.8-37.7,51.9-19.1,74.1s63.9,15.3,76-5.6c7.6-13.3,1.8-31.1-2.3-43.8C117.6,63.3,114.7,54.3,105.9,48.6Z"/>
+            <path fill="#00f5d4" d="M102,67.1c-9.6-6.1-22-3.1-29.5,2-15.4,10.7-19.6,37.5-7.6,47.8s35.9,3.9,44.5-12.5C115.5,92.6,113.9,74.6,102,67.1Z"/>
+        </svg>
+    </div>
+
+    <div id="settings-panel">
+        <button id="settings-toggle" type="button">⚙️</button>
+        <div id="settings-content" class="hidden">
+            <label>
+                <span data-i18n="settings_fx_volume">Effekt:</span>
+                <input type="range" id="fx-volume" min="0" max="1" step="0.1" value="0.7">
+            </label>
+            <label>
+                <span data-i18n="language_label">Nyelv</span>
+                <select id="lang-select">
+                    <option value="HU-hu">Magyar (HU)</option>
+                    <option value="EN-en">English (EN)</option>
+                </select>
+            </label>
+        </div>
+    </div>
+
+    <a href="multiplayer.html" class="mp-back-link" data-i18n="mp_back">← Vissza</a>
+
+    <div id="mp-connect-screen" class="mp-screen">
+        <h1 data-i18n="mp_host_title">🎤 Műsorvezető</h1>
+        <p id="mp-connect-status" class="mp-status" data-i18n="mp_connecting">Kapcsolódás…</p>
+        <button id="mp-retry-btn" type="button" class="hidden mp-btn-secondary" data-i18n="mp_retry">Újrapróbálás</button>
+    </div>
+
+    <div id="mp-lobby-screen" class="mp-screen hidden">
+        <h1 data-i18n="mp_host_lobby">Szoba</h1>
+        <div class="mp-room-box">
+            <p data-i18n="mp_room_code">Szobakód:</p>
+            <div id="mp-room-code" class="mp-room-code">----</div>
+            <p data-i18n="mp_player_link">Játékosok linkje:</p>
+            <div class="mp-link-row">
+                <input id="mp-player-url" type="text" readonly>
+                <button id="mp-copy-link" type="button" class="mp-btn-secondary" data-i18n="mp_copy">Másolás</button>
+            </div>
+        </div>
+        <label for="json-upload" data-i18n="json_upload_label">Válassz kvíz JSON fájlt:</label>
+        <input type="file" id="json-upload" accept=".json">
+        <p id="mp-quiz-status" class="mp-hint"></p>
+        <div id="help-toggle-container">
+            <button id="help-toggle" type="button" class="help-toggle-btn" data-i18n="help_toggle">💡 Segítségek</button>
+        </div>
+        <div id="help-options" class="hidden mp-help-options">
+            <div class="help-option">
+                <div>
+                    <h4 data-i18n="help_half_title">Felezés</h4>
+                    <p class="help-desc" data-i18n="help_half_desc">Elveszi a lehetséges válaszok felét</p>
+                </div>
+                <div class="help-controls">
+                    <button type="button" id="dec-half" class="control-btn">-</button>
+                    <span id="count-half">1</span>
+                    <button type="button" id="inc-half" class="control-btn">+</button>
+                </div>
+            </div>
+            <div class="help-option">
+                <div>
+                    <h4 data-i18n="help_hint_title">Hint</h4>
+                    <p class="help-desc" data-i18n="help_hint_desc">Tipp a kérdéshez</p>
+                </div>
+                <div class="help-controls">
+                    <button type="button" id="dec-hint" class="control-btn">-</button>
+                    <span id="count-hint">1</span>
+                    <button type="button" id="inc-hint" class="control-btn">+</button>
+                </div>
+            </div>
+            <div class="help-option">
+                <div>
+                    <h4 data-i18n="help_dbl_title">Dupla esély</h4>
+                    <p class="help-desc" data-i18n="help_dbl_desc">Két válasz lehetőség</p>
+                </div>
+                <div class="help-controls">
+                    <button type="button" id="dec-dbl" class="control-btn">-</button>
+                    <span id="count-dbl">1</span>
+                    <button type="button" id="inc-dbl" class="control-btn">+</button>
+                </div>
+            </div>
+        </div>
+        <p class="mp-hint" data-i18n="mp_min_players_hint">Minimum 2 játékos kell az indításhoz (max. 8).</p>
+        <div id="mp-players-waiting" class="mp-players-list"></div>
+        <button id="mp-start-game" type="button" class="mp-btn-primary" disabled data-i18n="mp_start_game">🎮 Játék indítása</button>
+    </div>
+
+    <div id="mp-game-screen" class="mp-screen hidden">
+        <div id="mp-scoreboard" class="mp-scoreboard"></div>
+        <div id="progress">1/1</div>
+        <h2 id="question-text"></h2>
+        <img id="question-image" src="" alt="" class="hidden">
+        <div id="host-answers-display" class="answers-container mp-host-answers"></div>
+        <div id="mp-reveal-results" class="mp-reveal-panel hidden"></div>
+        <div id="trivia" class="trivia-box hidden">
+            <div class="trivia-header">Trivia</div>
+            <div class="trivia-content">
+                <span>🧠</span>
+                <span class="trivia-text"></span>
+            </div>
+        </div>
+        <p id="mp-status-line" class="mp-status-line mp-phase-status hidden"></p>
+        <div class="mp-host-actions">
+            <button id="mp-lock-btn" type="button" class="hidden mp-action-btn mp-lock-btn" data-i18n="mp_lock_answers">🔒 Válaszok lezárása</button>
+            <button id="mp-reveal-btn" type="button" class="hidden mp-action-btn mp-reveal-btn" data-i18n="mp_reveal_answers">👁️ Helyes válasz felfedése</button>
+            <button id="next-btn" type="button" class="hidden" data-i18n="next_button">➡️ Tovább</button>
+        </div>
+    </div>
+
+    <div id="mp-end-screen" class="mp-screen hidden">
+        <h2 data-i18n="mp_final_scores">Végeredmény</h2>
+        <div id="mp-final-standings"></div>
+        <div id="mp-answer-matrix-wrap" class="mp-matrix-wrap"></div>
+        <button id="mp-restart" type="button" class="mp-btn-primary" data-i18n="restart_button">🔄 Új játék</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script src="shared/multiplayer-client.js"></script>
+    <script src="host.js"></script>
+</body>
+</html>

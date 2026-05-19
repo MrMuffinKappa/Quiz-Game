@@ -40,6 +40,41 @@ You can also use editor extensions such as VS Code Live Server or any static ser
 - To change languages, check the `localization/` folder (for example `EN-en.ini`, `HU-hu.ini`).
 - Edit `quiz.json` or use `editor.html` to modify quiz content.
 
+## Multiplayer (1 host + 2 players)
+
+Optional mode for LAN parties or online play. The solo game on `index.html` is unchanged.
+
+1. **Start the WebSocket server** (required for multiplayer):
+
+```bash
+npm install
+npm start
+```
+
+2. **Host:** open `/host.html` (or use **Multiplayer** from the main menu) → upload quiz JSON → share the player link with the room code.
+3. **Players:** open `/player.html?room=XXXX` on their phones → enter name → join.
+
+On **quiz.mrmuffin.dev**, static files are served by nginx; the Node process must run on the server and nginx must proxy `/ws` (see `muffin.conf`). Example systemd unit:
+
+```ini
+[Unit]
+Description=Quiz Game multiplayer
+After=network.target
+
+[Service]
+WorkingDirectory=/var/www/muffin/quiz
+ExecStart=/usr/bin/node server/index.js
+Environment=PORT=3000
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then: `sudo systemctl enable --now quiz-multiplayer` and `sudo nginx -t && sudo systemctl reload nginx`.
+
+Health check: `GET /api/health` (when Node is running).
+
 ## Author
 
 Developed by: Chlebik Dávid
