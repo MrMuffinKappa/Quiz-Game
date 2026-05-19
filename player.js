@@ -1,10 +1,91 @@
 let socket = null;
 let myPlayerId = null;
 let lastState = null;
+let lastRevealMsg = null;
 let selectedLetters = [];
 let answersLocked = false;
 let drumsPlayedForQuestion = false;
 let lastRenderedQuestion = -1;
+let selectedIconId = null;
+let avatarIndex = 0;
+let lastPhase = null;
+
+const AVAILABLE_ICONS = [
+    'bear', 'buffalo', 'chick', 'chicken', 'cow', 'crocodile', 'dog', 'duck',
+    'elephant', 'frog', 'giraffe', 'goat', 'gorilla', 'hippo', 'horse', 'monkey',
+    'moose', 'narwhal', 'owl', 'panda', 'parrot', 'penguin', 'pig', 'rabbit',
+    'rhino', 'sloth', 'snake', 'walrus', 'whale', 'zebra'
+];
+
+function iconLabel(id) {
+    const fallback = id.charAt(0).toUpperCase() + id.slice(1);
+    return t(`icon_${id}`, fallback);
+}
+
+function vibrate(pattern) {
+    try {
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+            navigator.vibrate(pattern);
+        }
+    } catch (_) { /* ignore */ }
+}
+
+function iconUrl(iconId) {
+    return iconId ? `icons/${iconId}.png` : null;
+}
+
+function setBgState({ fast, correct, wrong } = {}) {
+    document.body.classList.toggle('mp-bg-fast', !!fast);
+    document.body.classList.toggle('mp-bg-correct', !!correct);
+    document.body.classList.toggle('mp-bg-wrong', !!wrong);
+}
+
+function updateAvatarDisplay() {
+    const img = document.getElementById('mp-avatar-image');
+    const name = document.getElementById('mp-avatar-name');
+    if (!img || !name) return;
+    const id = AVAILABLE_ICONS[avatarIndex];
+    selectedIconId = id;
+    img.src = iconUrl(id);
+    img.alt = id;
+    name.textContent = iconLabel(id);
+    localStorage.setItem('quiz_player_icon', id);
+    localStorage.setItem('quiz_player_icon_idx', String(avatarIndex));
+}
+
+function stepAvatar(dir) {
+    const n = AVAILABLE_ICONS.length;
+    avatarIndex = (avatarIndex + dir + n) % n;
+    updateAvatarDisplay();
+    const img = document.getElementById('mp-avatar-image');
+    if (img) {
+        img.classList.remove('mp-avatar-anim-left', 'mp-avatar-anim-right');
+        void img.offsetWidth;
+        img.classList.add(dir > 0 ? 'mp-avatar-anim-right' : 'mp-avatar-anim-left');
+    }
+    vibrate(10);
+}
+
+function initAvatarPicker() {
+    const prev = document.getElementById('mp-avatar-prev');
+    const next = document.getElementById('mp-avatar-next');
+    if (!prev || !next) return;
+    prev.addEventListener('click', () => stepAvatar(-1));
+    next.addEventListener('click', () => stepAvatar(1));
+
+    const savedIdx = parseInt(localStorage.getItem('quiz_player_icon_idx'), 10);
+    if (!Number.isNaN(savedIdx) && savedIdx >= 0 && savedIdx < AVAILABLE_ICONS.length) {
+        avatarIndex = savedIdx;
+    } else {
+        avatarIndex = Math.floor(Math.random() * AVAILABLE_ICONS.length);
+    }
+    updateAvatarDisplay();
+
+    document.addEventListener('quiz-locale-loaded', () => {
+        const name = document.getElementById('mp-avatar-name');
+        if (name) name.textContent = iconLabel(AVAILABLE_ICONS[avatarIndex]);
+    });
+}
 
 const screens = {
     join: document.getElementById('mp-join-screen'),
@@ -80,6 +161,25 @@ function applyPlayerView(pv) {
             }
         }
     });
+    updateAnswerAvatars();
+}
+
+function updateAnswerAvatars() {
+    const container = document.getElementById('answers-container');
+    if (!container) return;
+    container.querySelectorAll('.mp-avatar-overlay').forEach(el => el.remove());
+
+    const me = lastState && lastState.players.find(p => p.isYou);
+    if (!me || !me.iconId) return;
+
+    selectedLetters.forEach(letter => {
+        const btn = container.querySelector(`.answer[data-letter="${letter}"]`);
+        if (!btn) return;
+        const overlay = document.createElement('span');
+        overlay.className = 'mp-avatar-overlay';
+        overlay.innerHTML = `<img src="${iconUrl(me.iconId)}" alt="${me.name}" title="${me.name}">`;
+        btn.appendChild(overlay);
+    });
 }
 
 function setPhaseStatus(el, text, phaseClass) {
@@ -153,6 +253,8 @@ function onAnswerClick(btn, dblActive) {
             t('mp_can_change', 'Válasz kész — módosíthatod, amíg a műsorvezető le nem zárja'),
             'question');
     }
+    vibrate(15);
+    updateAnswerAvatars();
 }
 
 function applyRevealToButtons(msg) {
@@ -174,6 +276,7 @@ function applyRevealToButtons(msg) {
             btn.classList.add('deselected');
         }
     });
+    updateAnswerAvatars();
 
     const banner = document.getElementById('mp-result-banner');
     if (me) {
@@ -183,6 +286,7 @@ function applyRevealToButtons(msg) {
             ? t('mp_you_correct', 'Helyes! ✅')
             : t('mp_you_wrong', 'Helytelen ❌');
         playFx(me.correct ? 'good.mp3' : 'bad.mp3');
+        vibrate(me.correct ? [60, 40, 60] : [200]);
     }
 }
 
@@ -237,6 +341,9 @@ function onState(state) {
         showScreen('game');
         drumsPlayedForQuestion = false;
         answersLocked = false;
+        lastPhase = 'question';
+        lastRevealMsg = null;
+        setBgState({});
         selectedLetters = pv ? [...pv.selectedLetters] : [];
 
         document.getElementById('mp-player-progress').textContent =
@@ -244,6 +351,8 @@ function onState(state) {
         document.getElementById('question-text').textContent = state.question.text;
         document.getElementById('mp-result-banner').classList.add('hidden');
         document.getElementById('hint').classList.add('hidden');
+        const triviaEl = document.getElementById('mp-trivia');
+        if (triviaEl) triviaEl.classList.add('hidden');
 
         const hasSelection = selectedLetters.length > 0;
         const statusEl = document.getElementById('mp-player-status');
@@ -269,27 +378,73 @@ function onState(state) {
         setPhaseStatus(document.getElementById('mp-player-status'),
             t('mp_answers_locked_player', 'Válaszok lezárva — várakozás a felfedésre…'),
             'locked');
+        if (lastPhase !== 'locked') vibrate([40, 30, 40]);
+        lastPhase = 'locked';
+        setBgState({ fast: false });
+        return;
+    }
+
+    if (state.phase === 'revealing') {
+        showScreen('game');
+        answersLocked = true;
+        if (pv) applyPlayerView(pv);
+        setPhaseStatus(document.getElementById('mp-player-status'),
+            t('mp_revealing', 'Felfedés folyamatban…'),
+            'locked');
+        if (lastPhase !== 'revealing') {
+            if (!drumsPlayedForQuestion) {
+                drumsPlayedForQuestion = true;
+                playFx('drums.mp3');
+            }
+            vibrate([100, 50, 100, 50, 200]);
+        }
+        lastPhase = 'revealing';
+        setBgState({ fast: true });
         return;
     }
 
     if (state.phase === 'reveal') {
         showScreen('game');
         answersLocked = true;
-        if (pv) applyPlayerView(pv);
-        setPhaseStatus(document.getElementById('mp-player-status'),
-            t('mp_reveal_soon', 'Hamarosan a helyes válasz…'),
-            'waiting');
+        if (lastRevealMsg) {
+            applyRevealToButtons(lastRevealMsg);
+            showRevealTrivia(lastRevealMsg);
+        } else if (pv) {
+            applyPlayerView(pv);
+        }
+        lastPhase = 'reveal';
+        const me = lastRevealMsg && lastRevealMsg.playerResults.find(r => r.id === myPlayerId);
+        setBgState({
+            fast: false,
+            correct: !!(me && me.correct),
+            wrong: !!(me && !me.correct)
+        });
+    }
+}
+
+function showRevealTrivia(msg) {
+    const statusEl = document.getElementById('mp-player-status');
+    const triviaEl = document.getElementById('mp-trivia');
+    const triviaText = triviaEl && triviaEl.querySelector('.trivia-text');
+    if (msg && msg.trivia && msg.trivia.trim()) {
+        if (triviaEl && triviaText) {
+            triviaText.textContent = msg.trivia;
+            triviaEl.classList.remove('hidden');
+        }
+        setPhaseStatus(statusEl, null);
+    } else {
+        if (triviaEl) triviaEl.classList.add('hidden');
+        setPhaseStatus(statusEl, null);
     }
 }
 
 function onReveal(msg) {
-    if (!drumsPlayedForQuestion) {
-        drumsPlayedForQuestion = true;
-        playFx('drums.mp3');
-    }
+    lastRevealMsg = msg;
     applyRevealToButtons(msg);
-    setPhaseStatus(document.getElementById('mp-player-status'), null);
+    showRevealTrivia(msg);
     document.getElementById('help-buttons').classList.add('hidden');
+    const me = msg.playerResults.find(r => r.id === myPlayerId);
+    setBgState({ correct: !!(me && me.correct), wrong: !!(me && !me.correct) });
 }
 
 function onGameOver(msg) {
@@ -304,13 +459,33 @@ function onGameOver(msg) {
     renderAnswerMatrix(msg);
 }
 
+const CLOWN_NAMES = ['n3ro', 'n3rolul', 'tóth', 'toth', 'nero'];
+
+function applyEasterEgg(name) {
+    if (!name) return { name, iconId: selectedIconId };
+    const normalized = name.toLowerCase().trim();
+    if (CLOWN_NAMES.includes(normalized)) {
+        return { name: 'CLOWN', iconId: 'clown' };
+    }
+    return { name, iconId: selectedIconId };
+}
+
 async function joinGame() {
     const roomCode = document.getElementById('mp-room-input').value.toUpperCase().trim();
-    const name = document.getElementById('mp-name-input').value.trim() || 'Játékos';
+    const rawName = document.getElementById('mp-name-input').value.trim() || 'Játékos';
     const status = document.getElementById('mp-join-status');
 
     if (roomCode.length < 4) {
         status.textContent = t('mp_error_missing_room', 'Add meg a szobakódot!');
+        return;
+    }
+
+    const egg = applyEasterEgg(rawName);
+    const name = egg.name;
+    const iconForJoin = egg.iconId;
+
+    if (!iconForJoin) {
+        status.textContent = t('mp_error_no_icon', 'Válassz egy karaktert!');
         return;
     }
 
@@ -340,7 +515,7 @@ async function joinGame() {
 
     try {
         await socket.connect();
-        socket.join(roomCode, 'player', name);
+        socket.join(roomCode, 'player', name, iconForJoin);
     } catch {
         status.textContent = t('mp_server_offline', 'A szerver nem elérhető.');
         document.getElementById('mp-retry-btn').classList.remove('hidden');
@@ -377,4 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mp-name-input').addEventListener('change', (e) => {
         localStorage.setItem('quiz_player_name', e.target.value);
     });
+
+    initAvatarPicker();
 });

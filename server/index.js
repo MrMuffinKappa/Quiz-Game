@@ -80,7 +80,7 @@ wss.on('connection', (ws) => {
                     return;
                 }
             } else if (msg.role === 'player') {
-                const result = room.addPlayer(ws, msg.name);
+                const result = room.addPlayer(ws, msg.name, msg.iconId);
                 if (!result.ok) {
                     send(ws, { type: 'ERROR', code: result.error });
                     room.removeConnection(ws);

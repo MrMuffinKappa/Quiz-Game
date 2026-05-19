@@ -61,7 +61,10 @@ function updateLobby(state) {
         state.players.forEach(p => {
             const div = document.createElement('div');
             div.className = 'mp-player-chip';
-            div.textContent = `✅ ${p.name}`;
+            const icon = p.iconId
+                ? `<img class="mp-chip-avatar" src="${iconUrl(p.iconId)}" alt="">`
+                : '';
+            div.innerHTML = `${icon}<span>${escapeHtml(p.name)}</span>`;
             list.appendChild(div);
         });
         if (state.players.length < state.maxPlayers) {
@@ -76,14 +79,33 @@ function updateLobby(state) {
     startBtn.disabled = !quizLoaded || state.players.length < minP;
 }
 
-function renderScoreboard(players) {
-    document.getElementById('mp-scoreboard').innerHTML = players.map(p =>
-        `<span class="mp-score-item">${p.name}: <strong>${p.score}</strong>
-         ${p.hasAnswered ? '✓' : '○'}</span>`
-    ).join('');
+function iconUrl(iconId) {
+    return iconId ? `icons/${iconId}.png` : null;
 }
 
-function renderHostAnswers(answers, revealData) {
+function renderScoreboard(players) {
+    document.getElementById('mp-scoreboard').innerHTML = players.map(p => {
+        const icon = p.iconId
+            ? `<img class="mp-score-avatar" src="${iconUrl(p.iconId)}" alt="">`
+            : '';
+        return `<span class="mp-score-item">${icon}<span>${escapeHtml(p.name)}</span>: <strong>${p.score}</strong>
+         ${p.hasAnswered ? '✓' : '○'}</span>`;
+    }).join('');
+}
+
+function buildAvatarOverlay(players, letter) {
+    const picks = (players || []).filter(p =>
+        Array.isArray(p.pickedLetters) && p.pickedLetters.includes(letter));
+    if (picks.length === 0) return '';
+    const items = picks.map(p =>
+        p.iconId
+            ? `<span class="mp-avatar-overlay" title="${escapeHtml(p.name)}"><img src="${iconUrl(p.iconId)}" alt="${escapeHtml(p.name)}"></span>`
+            : `<span class="mp-avatar-overlay mp-avatar-name" title="${escapeHtml(p.name)}">${escapeHtml(p.name[0] || '?')}</span>`
+    ).join('');
+    return `<span class="mp-avatar-stack">${items}</span>`;
+}
+
+function renderHostAnswers(answers, revealData, statePlayers) {
     const container = document.getElementById('host-answers-display');
     container.innerHTML = '';
     const colors = ['red', 'blue', 'yellow', 'green'];
@@ -94,7 +116,8 @@ function renderHostAnswers(answers, revealData) {
     answers.forEach((a, i) => {
         const div = document.createElement('div');
         div.className = `answer answer-color-${colors[i]}`;
-        div.innerHTML = `<span class="answer-label">${a.letter}.</span> ${a.text}`;
+        const overlay = buildAvatarOverlay(statePlayers, a.letter);
+        div.innerHTML = `<span class="answer-label">${a.letter}.</span> ${escapeHtml(a.text)}${overlay}`;
         if (revealMap) {
             if (revealMap[a.letter].correct) div.classList.add('correct');
             else div.classList.add('deselected');
@@ -106,12 +129,15 @@ function renderHostAnswers(answers, revealData) {
 function renderRevealPanel(msg) {
     const panel = document.getElementById('mp-reveal-results');
     panel.classList.remove('hidden');
-    panel.innerHTML = `<div class="results-list">${msg.playerResults.map(r =>
-        `<div class="result-item ${r.correct ? 'correct' : 'incorrect'}">
-            <span><strong>${escapeHtml(r.name)}</strong></span>
+    panel.innerHTML = `<div class="results-list">${msg.playerResults.map(r => {
+        const avatar = r.iconId
+            ? `<img class="mp-reveal-avatar" src="${iconUrl(r.iconId)}" alt="">`
+            : '';
+        return `<div class="result-item ${r.correct ? 'correct' : 'incorrect'}">
+            <span>${avatar}<strong>${escapeHtml(r.name)}</strong></span>
             <span>${r.correct ? '✅' : '❌'} ${escapeHtml(r.pickedText || '–')}</span>
-        </div>`
-    ).join('')}</div>`;
+        </div>`;
+    }).join('')}</div>`;
 }
 
 function setPhaseStatus(el, text, phaseClass) {
@@ -164,18 +190,18 @@ function escapeHtml(s) {
     return d.innerHTML;
 }
 
+function setBgState({ fast, correct, wrong } = {}) {
+    document.body.classList.toggle('mp-bg-fast', !!fast);
+    document.body.classList.toggle('mp-bg-correct', !!correct);
+    document.body.classList.toggle('mp-bg-wrong', !!wrong);
+}
+
 function colorizeBackground(isCorrect) {
-    const paths = document.querySelectorAll('#background-svg path');
-    const colors = isCorrect
-        ? ['#4CAF50', '#66BB6A', '#81C784', '#A5D6A7']
-        : ['#F44336', '#EF5350', '#E57373', '#EF9A9A'];
-    paths.forEach((p, i) => { p.style.fill = colors[i % colors.length]; });
+    setBgState({ correct: isCorrect, wrong: !isCorrect });
 }
 
 function resetBackground() {
-    const paths = document.querySelectorAll('#background-svg path');
-    const original = ['#9b5de5', '#f15bb5', '#00bbf9', '#00f5d4'];
-    paths.forEach((p, i) => { p.style.fill = original[i]; });
+    setBgState({});
 }
 
 function updateHostButtons(state) {
@@ -186,6 +212,11 @@ function updateHostButtons(state) {
     lockBtn.classList.toggle('hidden', state.phase !== 'question');
     revealBtn.classList.toggle('hidden', state.phase !== 'locked');
     nextBtn.classList.toggle('hidden', state.phase !== 'reveal');
+    if (state.phase === 'revealing') {
+        lockBtn.classList.add('hidden');
+        revealBtn.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+    }
 }
 
 function onState(state) {
@@ -226,10 +257,11 @@ function onState(state) {
     if (state.phase === 'question') {
         drumsPlayedForQuestion = false;
         resetBackground();
+        setBgState({});
         revealPanel.classList.add('hidden');
         revealPanel.innerHTML = '';
         triviaDiv.classList.add('hidden');
-        renderHostAnswers(q.answers, null);
+        renderHostAnswers(q.answers, null, null);
 
         const answered = state.players.filter(p => p.hasAnswered).length;
         const total = state.players.length;
@@ -240,13 +272,27 @@ function onState(state) {
     }
 
     if (state.phase === 'locked') {
+        renderHostAnswers(q.answers, null, state.players);
         setPhaseStatus(statusLine,
             t('mp_answers_locked', 'Válaszok lezárva — felfedés gombbal mutasd a helyeset'),
             'locked');
     }
 
+    if (state.phase === 'revealing') {
+        renderHostAnswers(q.answers, null, state.players);
+        setPhaseStatus(statusLine,
+            t('mp_revealing', 'Felfedés folyamatban…'),
+            'locked');
+        if (!drumsPlayedForQuestion) {
+            drumsPlayedForQuestion = true;
+            playFx('drums.mp3');
+        }
+        setBgState({ fast: true });
+    }
+
     if (state.phase === 'reveal') {
         setPhaseStatus(statusLine, null);
+        setBgState({ fast: false });
     }
 }
 
@@ -254,7 +300,7 @@ function onReveal(msg) {
     const state = lastState;
     if (!state || !state.question) return;
 
-    renderHostAnswers(state.question.answers, msg);
+    renderHostAnswers(state.question.answers, msg, state.players);
     renderRevealPanel(msg);
 
     const anyCorrect = msg.playerResults.some(r => r.correct);
@@ -379,10 +425,6 @@ document.getElementById('mp-lock-btn').addEventListener('click', () => {
 });
 
 document.getElementById('mp-reveal-btn').addEventListener('click', () => {
-    if (!drumsPlayedForQuestion) {
-        drumsPlayedForQuestion = true;
-        playFx('drums.mp3');
-    }
     socket.revealAnswers();
 });
 

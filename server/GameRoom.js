@@ -26,10 +26,11 @@ function randomId(prefix) {
     return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function createPlayer(ws, name) {
+function createPlayer(ws, name, iconId) {
     return {
         id: randomId('p'),
         name: (name || 'Player').trim().slice(0, 24) || 'Player',
+        iconId: (iconId || '').toString().slice(0, 40) || null,
         score: 0,
         currentAnswer: null,
         currentAnswers: [],
@@ -96,14 +97,14 @@ class GameRoom {
         return { ok: true };
     }
 
-    addPlayer(ws, name) {
+    addPlayer(ws, name, iconId) {
         if (this.players.size >= MAX_PLAYERS) {
             return { ok: false, error: 'room_full' };
         }
         if (this.phase !== 'lobby') {
             return { ok: false, error: 'game_started' };
         }
-        const player = createPlayer(ws, name);
+        const player = createPlayer(ws, name, iconId);
         this.players.set(player.id, player);
         ws.role = 'player';
         ws.playerId = player.id;
@@ -248,6 +249,8 @@ class GameRoom {
         if (this.phase !== 'locked') {
             return { ok: false, error: 'not_locked' };
         }
+        this.phase = 'revealing';
+        this.broadcastState();
         this.scheduleReveal();
         return { ok: true };
     }
@@ -291,6 +294,7 @@ class GameRoom {
             return {
                 id: p.id,
                 name: p.name,
+                iconId: p.iconId,
                 correct,
                 pickedLetter: p.currentAnswer,
                 pickedLetters: [...(p.currentAnswers || [])],
@@ -426,16 +430,23 @@ class GameRoom {
 
     getPublicState(forWs) {
         const question = this.quiz && this.quiz[this.questionIndex];
-        const playerList = [...this.players.values()].map(p => ({
-            id: p.id,
-            name: p.name,
-            score: p.score,
-            hasAnswered: p.currentAnswers.length > 0,
-            isYou: forWs && forWs.playerId === p.id
-        }));
+        const showPicked = forWs && forWs.role === 'host' && (this.phase === 'locked' || this.phase === 'revealing' || this.phase === 'reveal');
+        const playerList = [...this.players.values()].map(p => {
+            const isYou = forWs && forWs.playerId === p.id;
+            const exposePicked = showPicked || isYou || this.phase === 'reveal' || this.phase === 'revealing';
+            return {
+                id: p.id,
+                name: p.name,
+                iconId: p.iconId,
+                score: p.score,
+                hasAnswered: p.currentAnswers.length > 0,
+                pickedLetters: exposePicked ? [...p.currentAnswers] : [],
+                isYou
+            };
+        });
 
         let questionPayload = null;
-        if (question && ['question', 'locked', 'reveal'].includes(this.phase)) {
+        if (question && ['question', 'locked', 'revealing', 'reveal'].includes(this.phase)) {
             questionPayload = {
                 text: question.question,
                 image: question.image || null,

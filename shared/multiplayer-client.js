@@ -26,6 +26,7 @@ function applyTranslations(map) {
             }
         }
     });
+    document.dispatchEvent(new CustomEvent('quiz-locale-loaded'));
 }
 
 async function loadLocale(lang) {
@@ -82,7 +83,8 @@ const ERROR_KEYS = {
     invalid_quiz: 'mp_error_invalid_quiz',
     not_question: 'mp_error_not_question',
     not_locked: 'mp_error_not_locked',
-    no_lifeline: 'mp_error_no_lifeline'
+    no_lifeline: 'mp_error_no_lifeline',
+    no_icon: 'mp_error_no_icon'
 };
 
 function errorMessage(code) {
@@ -158,8 +160,8 @@ class QuizSocket {
         this.send({ type: 'HOST_CREATE', name });
     }
 
-    join(roomCode, role, name) {
-        this.send({ type: 'JOIN', roomCode, role, name });
+    join(roomCode, role, name, iconId) {
+        this.send({ type: 'JOIN', roomCode, role, name, iconId });
     }
 
     loadQuiz(quiz) {

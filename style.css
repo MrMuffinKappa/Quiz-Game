@@ -514,6 +514,87 @@ body {
     }
 }
 
+/* --- Multiplayer animated background --- */
+@keyframes mp-bg-move {
+    100% {
+        transform: translate3d(0, 0, 1px) rotate(360deg);
+    }
+}
+
+.mp-bg {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background: #1a1a1a;
+    overflow: hidden;
+    z-index: -1;
+    transition: filter 0.6s ease;
+}
+
+.mp-bg span {
+    width: 50vmin;
+    height: 50vmin;
+    border-radius: 50vmin;
+    backface-visibility: hidden;
+    position: absolute;
+    animation-name: mp-bg-move;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: calc(var(--bg-base-duration, 200s) * var(--bg-speed, 1));
+    will-change: transform;
+    transition: color 0.6s ease;
+}
+
+.mp-bg span:nth-child(1)  { color:#f15bb5; top:29%; left:70%; --bg-base-duration:195s; animation-delay:-161s; transform-origin:-18vw 8vh;  box-shadow: 100vmin 0 12.57vmin currentColor; }
+.mp-bg span:nth-child(2)  { color:#f15bb5; top:72%; left:88%; --bg-base-duration:208s; animation-delay:-342s; transform-origin:20vw 16vh;  box-shadow: 100vmin 0 12.54vmin currentColor; }
+.mp-bg span:nth-child(3)  { color:#f15bb5; top:85%; left:86%; --bg-base-duration:302s; animation-delay:-333s; transform-origin:-18vw 9vh;  box-shadow:-100vmin 0 12.55vmin currentColor; }
+.mp-bg span:nth-child(4)  { color:#00f5d4; top:73%; left:99%; --bg-base-duration:238s; animation-delay:-149s; transform-origin:8vw -9vh;   box-shadow:-100vmin 0 13.38vmin currentColor; }
+.mp-bg span:nth-child(5)  { color:#00f5d4; top:91%; left:11%; --bg-base-duration:160s; animation-delay:-105s; transform-origin:8vw 15vh;   box-shadow: 100vmin 0 13.01vmin currentColor; }
+.mp-bg span:nth-child(6)  { color:#9b5de5; top:7%;  left:36%; --bg-base-duration:68s;  animation-delay:-284s; transform-origin:-14vw -16vh;box-shadow:-100vmin 0 13.22vmin currentColor; }
+.mp-bg span:nth-child(7)  { color:#00f5d4; top:89%; left:56%; --bg-base-duration:395s; animation-delay:-174s; transform-origin:5vw 8vh;    box-shadow:-100vmin 0 13.43vmin currentColor; }
+.mp-bg span:nth-child(8)  { color:#00bbf9; top:25%; left:6%;  --bg-base-duration:200s; animation-delay:-304s; transform-origin:14vw 6vh;   box-shadow:-100vmin 0 12.75vmin currentColor; }
+.mp-bg span:nth-child(9)  { color:#00bbf9; top:62%; left:22%; --bg-base-duration:187s; animation-delay:-335s; transform-origin:8vw -5vh;   box-shadow:-100vmin 0 12.73vmin currentColor; }
+.mp-bg span:nth-child(10) { color:#f15bb5; top:11%; left:93%; --bg-base-duration:125s; animation-delay:-94s;  transform-origin:-20vw 9vh;  box-shadow:-100vmin 0 13.24vmin currentColor; }
+.mp-bg span:nth-child(11) { color:#9b5de5; top:8%;  left:47%; --bg-base-duration:210s; animation-delay:-170s; transform-origin:15vw -15vh; box-shadow:-100vmin 0 13.29vmin currentColor; }
+.mp-bg span:nth-child(12) { color:#00bbf9; top:67%; left:80%; --bg-base-duration:155s; animation-delay:-216s; transform-origin:21vw 20vh;  box-shadow:-100vmin 0 13.38vmin currentColor; }
+.mp-bg span:nth-child(13) { color:#00bbf9; top:94%; left:33%; --bg-base-duration:371s; animation-delay:-262s; transform-origin:-7vw 0vh;   box-shadow:-100vmin 0 13.29vmin currentColor; }
+.mp-bg span:nth-child(14) { color:#9b5de5; top:68%; left:13%; --bg-base-duration:153s; animation-delay:-103s; transform-origin:21vw -12vh; box-shadow:-100vmin 0 12.76vmin currentColor; }
+.mp-bg span:nth-child(15) { color:#9b5de5; top:77%; left:15%; --bg-base-duration:130s; animation-delay:-78s;  transform-origin:13vw -11vh; box-shadow: 100vmin 0 12.77vmin currentColor; }
+.mp-bg span:nth-child(16) { color:#9b5de5; top:12%; left:57%; --bg-base-duration:222s; animation-delay:-342s; transform-origin:23vw -11vh; box-shadow:-100vmin 0 12.75vmin currentColor; }
+.mp-bg span:nth-child(17) { color:#9b5de5; top:21%; left:68%; --bg-base-duration:329s; animation-delay:-31s;  transform-origin:17vw -9vh;  box-shadow: 100vmin 0 12.93vmin currentColor; }
+.mp-bg span:nth-child(18) { color:#9b5de5; top:73%; left:49%; --bg-base-duration:297s; animation-delay:-368s; transform-origin:-24vw 8vh;  box-shadow: 100vmin 0 13.32vmin currentColor; }
+.mp-bg span:nth-child(19) { color:#00bbf9; top:33%; left:90%; --bg-base-duration:283s; animation-delay:-92s;  transform-origin:18vw -19vh; box-shadow:-100vmin 0 12.93vmin currentColor; }
+.mp-bg span:nth-child(20) { color:#00bbf9; top:59%; left:33%; --bg-base-duration:134s; animation-delay:-159s; transform-origin:-23vw -11vh;box-shadow: 100vmin 0 13.10vmin currentColor; }
+.mp-bg span:nth-child(21) { color:#00f5d4; top:90%; left:3%;  --bg-base-duration:376s; animation-delay:-326s; transform-origin:18vw 24vh;  box-shadow:-100vmin 0 13.10vmin currentColor; }
+.mp-bg span:nth-child(22) { color:#00bbf9; top:9%;  left:84%; --bg-base-duration:275s; animation-delay:-72s;  transform-origin:21vw -8vh;  box-shadow:-100vmin 0 13.40vmin currentColor; }
+.mp-bg span:nth-child(23) { color:#00bbf9; top:38%; left:55%; --bg-base-duration:291s; animation-delay:-141s; transform-origin:-15vw -12vh;box-shadow: 100vmin 0 12.55vmin currentColor; }
+.mp-bg span:nth-child(24) { color:#00bbf9; top:76%; left:69%; --bg-base-duration:201s; animation-delay:-256s; transform-origin:-22vw -23vh;box-shadow: 100vmin 0 13.25vmin currentColor; }
+.mp-bg span:nth-child(25) { color:#00f5d4; top:53%; left:98%; --bg-base-duration:175s; animation-delay:-381s; transform-origin:-19vw 12vh; box-shadow:-100vmin 0 12.80vmin currentColor; }
+.mp-bg span:nth-child(26) { color:#00bbf9; top:41%; left:48%; --bg-base-duration:316s; animation-delay:-179s; transform-origin:-10vw 6vh;  box-shadow:-100vmin 0 13.48vmin currentColor; }
+.mp-bg span:nth-child(27) { color:#f15bb5; top:18%; left:90%; --bg-base-duration:301s; animation-delay:-11s;  transform-origin:-23vw 13vh; box-shadow: 100vmin 0 13.17vmin currentColor; }
+.mp-bg span:nth-child(28) { color:#9b5de5; top:89%; left:49%; --bg-base-duration:95s;  animation-delay:-84s;  transform-origin:5vw 12vh;   box-shadow:-100vmin 0 13.06vmin currentColor; }
+.mp-bg span:nth-child(29) { color:#00f5d4; top:29%; left:47%; --bg-base-duration:376s; animation-delay:-334s; transform-origin:13vw -19vh; box-shadow: 100vmin 0 12.52vmin currentColor; }
+.mp-bg span:nth-child(30) { color:#00f5d4; top:82%; left:53%; --bg-base-duration:195s; animation-delay:-361s; transform-origin:13vw 8vh;   box-shadow: 100vmin 0 12.89vmin currentColor; }
+.mp-bg span:nth-child(31) { color:#f15bb5; top:96%; left:32%; --bg-base-duration:141s; animation-delay:-262s; transform-origin:20vw 8vh;   box-shadow: 100vmin 0 13.49vmin currentColor; }
+.mp-bg span:nth-child(32) { color:#00f5d4; top:20%; left:29%; --bg-base-duration:227s; animation-delay:-16s;  transform-origin:23vw 23vh;  box-shadow: 100vmin 0 13.20vmin currentColor; }
+.mp-bg span:nth-child(33) { color:#f15bb5; top:100%;left:66%; --bg-base-duration:110s; animation-delay:-341s; transform-origin:25vw -24vh; box-shadow:-100vmin 0 12.70vmin currentColor; }
+.mp-bg span:nth-child(34) { color:#00bbf9; top:73%; left:43%; --bg-base-duration:167s; animation-delay:-276s; transform-origin:22vw -18vh; box-shadow: 100vmin 0 13.31vmin currentColor; }
+.mp-bg span:nth-child(35) { color:#f15bb5; top:74%; left:74%; --bg-base-duration:223s; animation-delay:-102s; transform-origin:-9vw 3vh;   box-shadow:-100vmin 0 12.89vmin currentColor; }
+
+body.mp-bg-fast .mp-bg span {
+    --bg-speed: 0.25;
+}
+
+body.mp-bg-correct .mp-bg span {
+    color: #4CAF50 !important;
+}
+
+body.mp-bg-wrong .mp-bg span {
+    color: #F44336 !important;
+}
+
 /* --- Multiplayer --- */
 .mp-link-btn {
     display: inline-block;
@@ -552,20 +633,68 @@ body {
     font-size: 1.15rem;
     font-weight: bold;
     color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mp-mode-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mp-mode-btn.mp-btn-primary,
+.mp-mode-btn.mp-btn-secondary {
+    padding: 16px 32px;
+    font-size: 1.15rem;
+    margin: 12px auto;
 }
 
 .mp-btn-primary {
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 1.2rem;
     background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-    border: none;
-    cursor: pointer;
     color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    text-align: center;
+    margin: 12px auto;
+}
+
+.mp-btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mp-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 .mp-btn-secondary {
-    background: rgba(255, 255, 255, 0.3);
-    border: 2px solid white;
-    cursor: pointer;
+    display: inline-block;
+    padding: 10px 22px;
+    background: rgba(255, 255, 255, 0.25);
     color: white;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    text-decoration: none;
+    text-align: center;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.mp-btn-secondary:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.4);
 }
 
 .mp-back-link,
@@ -667,20 +796,182 @@ body {
 }
 
 .mp-host-answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
     width: 100%;
-    max-width: 800px;
-    margin: 30px auto;
+    max-width: 900px;
+    margin: 20px auto;
 }
 
 .mp-host-answers .answer {
     cursor: default;
     pointer-events: none;
+    position: relative;
+    padding: 18px 18px 18px 22px;
+    text-align: left;
+    font-size: 1.1rem;
 }
 
 .mp-host-answers .answer.deselected {
     background: #cccccc !important;
     color: #666666 !important;
     opacity: 0.7;
+}
+
+.mp-avatar-stack {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    max-width: 60%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.mp-avatar-overlay img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    object-fit: cover;
+    display: block;
+}
+
+.mp-avatar-overlay.mp-avatar-name {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.4);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    font-weight: bold;
+}
+
+.mp-player-body .mp-avatar-overlay {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+}
+
+.mp-player-body .answer {
+    position: relative;
+}
+
+.mp-avatar-carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 360px;
+    margin: 8px auto 16px;
+    padding: 14px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.mp-avatar-nav {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: bold;
+    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0 4px;
+}
+
+.mp-avatar-nav:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.35);
+}
+
+.mp-avatar-nav:active {
+    transform: scale(0.95);
+}
+
+.mp-avatar-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+}
+
+.mp-avatar-current {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    padding: 6px;
+    display: block;
+}
+
+.mp-avatar-caption {
+    margin-top: 8px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.03em;
+}
+
+@keyframes mp-avatar-slide-in-right {
+    from { transform: translateX(40px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes mp-avatar-slide-in-left {
+    from { transform: translateX(-40px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+
+.mp-avatar-current.mp-avatar-anim-right {
+    animation: mp-avatar-slide-in-right 0.25s ease-out;
+}
+
+.mp-avatar-current.mp-avatar-anim-left {
+    animation: mp-avatar-slide-in-left 0.25s ease-out;
+}
+
+.mp-score-avatar,
+.mp-chip-avatar,
+.mp-reveal-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: white;
+    object-fit: cover;
+    vertical-align: middle;
+    margin-right: 6px;
+    border: 2px solid rgba(255,255,255,0.6);
+}
+
+.mp-score-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .mp-reveal-panel {
@@ -873,6 +1164,10 @@ body {
     background: linear-gradient(45deg, #9b5de5, #f15bb5);
 }
 
+.mp-host-body .mp-next-btn {
+    background: linear-gradient(45deg, #4ECDC4, #44A08D);
+}
+
 .mp-host-body #mp-game-screen {
     padding-bottom: 20px;
 }
@@ -935,7 +1230,97 @@ body {
 }
 
 .mp-player-body #help-buttons {
+    position: static;
     display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 14px;
+    margin: 12px auto 6px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.mp-player-body #help-buttons.hidden {
+    display: none;
+}
+
+.mp-player-body #help-buttons .help-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 26px;
+}
+
+.mp-player-body #mp-trivia {
+    margin: 12px auto;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Viewport-fit: kvíz játéktér scrollozás nélkül */
+.mp-host-body #mp-game-screen,
+.mp-player-body #mp-game-screen {
+    min-height: 100vh;
+    padding: 24px 16px 24px;
+    justify-content: flex-start;
+}
+
+.mp-host-body #mp-game-screen #question-text,
+.mp-player-body #mp-game-screen #question-text {
+    font-size: clamp(1.1rem, 2.4vw, 1.7rem);
+    margin: 8px 0 14px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mp-host-body #mp-game-screen #question-image,
+.mp-player-body #mp-game-screen #question-image {
+    max-height: 25vh;
+    height: auto;
+    margin: 8px auto;
+}
+
+.mp-host-body #mp-game-screen #progress {
+    font-size: 1rem;
+    margin: 4px 0 8px;
+    opacity: 0.85;
+}
+
+.mp-host-body #mp-game-screen .mp-host-answers {
+    margin: 12px auto;
+    gap: 12px;
+}
+
+.mp-host-body #mp-game-screen .mp-host-answers .answer {
+    padding: 14px 14px 14px 18px;
+    font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+    min-height: 64px;
+}
+
+.mp-host-body #mp-game-screen .mp-phase-status,
+.mp-player-body #mp-game-screen .mp-phase-status {
+    padding: 10px 16px;
+    margin: 10px auto;
+    font-size: 1rem;
+}
+
+.mp-host-body #mp-game-screen .mp-host-actions {
+    margin: 12px 0 16px;
+}
+
+.mp-player-body #mp-game-screen #answers-container {
+    gap: 12px;
+    margin: 12px auto;
+}
+
+.mp-player-body #mp-game-screen .answer {
+    padding: 14px;
+    font-size: 1rem;
+    min-height: 60px;
+}
+
+.mp-player-body #mp-game-screen .mp-progress,
+.mp-player-body #mp-game-screen .mp-your-score {
+    font-size: 0.95rem;
+    margin: 4px 0;
 }
 
 @media (max-width: 600px) {
@@ -950,11 +1335,35 @@ body {
     .mp-host-actions {
         flex-direction: column;
         align-items: stretch;
-        margin-bottom: 90px;
+        margin-bottom: 12px;
     }
 
     .mp-host-body .mp-action-btn {
         width: 100%;
+    }
+
+    .mp-avatar-overlay img,
+    .mp-avatar-overlay.mp-avatar-name {
+        width: 30px;
+        height: 30px;
+    }
+
+    .mp-player-body #mp-game-screen .answer {
+        font-size: 0.95rem;
+        min-height: 52px;
+        padding: 12px;
+        padding-right: 44px;
+    }
+}
+
+@media (max-height: 720px) {
+    .mp-host-body #mp-game-screen #question-image,
+    .mp-player-body #mp-game-screen #question-image {
+        max-height: 18vh;
+    }
+    .mp-host-body #mp-game-screen .mp-host-answers .answer {
+        min-height: 56px;
+        padding: 10px 12px 10px 16px;
     }
 }
 

@@ -7,11 +7,14 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="mp-player-body">
-    <div class="background-blur">
-        <svg preserveAspectRatio="xMidYMid slice" viewBox="10 10 80 80">
-            <path fill="#9b5de5" d="M37-5C25.1-14.7,5.7-19.1-9.2-10-28.5,1.8-32.7,31.1-19.8,49c15.5,21.5,52.6,22,67.2,2.3C59.4,35,53.7,8.5,37-5Z"/>
-            <path fill="#f15bb5" d="M20.6,4.1C11.6,1.5-1.9,2.5-8,11.2-16.3,23.1-8.2,45.6,7.4,50S42.1,38.9,41,24.5C40.2,14.1,29.4,6.6,20.6,4.1Z"/>
-        </svg>
+    <div class="mp-bg">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
     </div>
 
     <div id="settings-panel">
@@ -19,7 +22,7 @@
         <div id="settings-content" class="hidden">
             <label>
                 <span data-i18n="settings_fx_volume">Effekt:</span>
-                <input type="range" id="fx-volume" min="0" max="1" step="0.1" value="0.7">
+                <input type="range" id="fx-volume" min="0" max="1" step="0.1" value="0">
             </label>
             <label>
                 <span data-i18n="language_label">Nyelv</span>
@@ -33,18 +36,21 @@
 
     <a href="multiplayer.html" class="mp-back-link" data-i18n="mp_back">← Vissza</a>
 
-    <div id="help-buttons" class="hidden">
-        <button id="half-btn" type="button" class="help-btn" title="50/50">🔪<span class="help-counter">0</span></button>
-        <button id="hint-btn" type="button" class="help-btn" title="Hint">💡<span class="help-counter">0</span></button>
-        <button id="dbl-btn" type="button" class="help-btn" title="Double">✌️<span class="help-counter">0</span></button>
-    </div>
-
     <div id="mp-join-screen" class="mp-screen">
         <h1 data-i18n="mp_player_title">📱 Játékos</h1>
         <label for="mp-room-input" data-i18n="mp_room_code">Szobakód:</label>
         <input id="mp-room-input" type="text" maxlength="4" placeholder="ABCD" autocomplete="off">
         <label for="mp-name-input" data-i18n="mp_your_name">Neved:</label>
         <input id="mp-name-input" type="text" maxlength="24" placeholder="Anna">
+        <label data-i18n="mp_pick_avatar">Válassz karaktert:</label>
+        <div id="mp-avatar-picker" class="mp-avatar-carousel">
+            <button type="button" id="mp-avatar-prev" class="mp-avatar-nav" aria-label="prev">‹</button>
+            <div class="mp-avatar-stage">
+                <img id="mp-avatar-image" class="mp-avatar-current" alt="">
+                <span id="mp-avatar-name" class="mp-avatar-caption"></span>
+            </div>
+            <button type="button" id="mp-avatar-next" class="mp-avatar-nav" aria-label="next">›</button>
+        </div>
         <p id="mp-join-status" class="mp-status"></p>
         <button id="mp-join-btn" type="button" class="mp-btn-primary" data-i18n="mp_join">Csatlakozás</button>
         <button id="mp-retry-btn" type="button" class="hidden mp-btn-secondary" data-i18n="mp_retry">Újrapróbálás</button>
@@ -65,7 +71,19 @@
             <span class="hint-content"></span>
         </div>
         <div id="answers-container"></div>
+        <div id="help-buttons" class="mp-player-help">
+            <button id="half-btn" type="button" class="help-btn" title="50/50">🔪<span class="help-counter">0</span></button>
+            <button id="hint-btn" type="button" class="help-btn" title="Hint">💡<span class="help-counter">0</span></button>
+            <button id="dbl-btn" type="button" class="help-btn" title="Double">✌️<span class="help-counter">0</span></button>
+        </div>
         <p id="mp-player-status" class="mp-status-line mp-phase-status hidden"></p>
+        <div id="mp-trivia" class="trivia-box hidden">
+            <div class="trivia-header">Trivia</div>
+            <div class="trivia-content">
+                <span>🧠</span>
+                <span class="trivia-text"></span>
+            </div>
+        </div>
         <div id="mp-result-banner" class="mp-result-banner hidden"></div>
     </div>
 
